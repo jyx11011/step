@@ -8,7 +8,16 @@
   margin-top: 20px;
 }
 
-#content img {
-  width: 300px;
+#gallery {
+  overflow: scroll;
+  height: 650px;
+}
+
+#gallery img {
+  width: 200px;
   height: auto;
+}
+
+#gallery img:hover {
+  border: 2px solid gainsboro;
 }
