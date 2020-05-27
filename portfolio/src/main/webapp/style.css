@@ -21,3 +21,8 @@
 #gallery img:hover {
   border: 2px solid gainsboro;
 }
+
+.sec-header {
+    background: #8eb8ce;
+    color: white;
+}
