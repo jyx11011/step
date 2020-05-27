@@ -1,21 +1,24 @@
-#content {
-  margin-left: auto;
-  margin-right: auto;
-  width: 650px;
+body {
+  background: #9bcce5b6;
 }
 
-#greeting-container {
-  margin-top: 20px;
+#content {
+  background: whitesmoke;
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 0;
+  padding: 30px 20px;
+  width: 700px;
 }
 
 #gallery {
-  overflow: scroll;
   height: 650px;
+  overflow: scroll;
 }
 
 #gallery img {
-  width: 200px;
   height: auto;
+  width: 200px;
 }
 
 #gallery img:hover {
@@ -25,4 +28,5 @@
 .sec-header {
     background: #8eb8ce;
     color: white;
+    text-align: center;
 }
