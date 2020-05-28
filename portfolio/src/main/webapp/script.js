@@ -40,13 +40,8 @@ function shuffle(arr) {
 function shuffleImagesInGallery() {
   const gallery = document.getElementById('gallery');
   const images = gallery.getElementsByTagName('img');
-  
-  var indices = []
-  for(i=0; i < images.length; i++) {
-    indices.push(i);
-  }
-  shuffle(indices);
-  for(i = 0; i < images.length; i++) {
-    gallery.appendChild(images[indices[i]]);
+  shuffle(Array.from(images));
+  for (var image of images) {
+    gallery.appendChild(image);
   }
 }
