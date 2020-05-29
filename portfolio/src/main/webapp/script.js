@@ -18,11 +18,36 @@
 function addRandomFact() {
   const facts =
       ['I\'m a CS student.', 'I love programming!', 'I love watching TV series.', 'I love cooking!'];
+  const effects = 
+      ['', 'shadow', 'shine', 'dark']
 
   // Pick a random fact.
   const fact = facts[Math.floor(Math.random() * facts.length)];
 
+  // Pick a random effect.
+  const effect = effects[Math.floor(Math.random() * effects.length)];
+
   // Add it to the page.
   const factContainer = document.getElementById('fact-container');
   factContainer.innerText = fact;
+  factContainer.className = effect;
+}
+
+/**
+ * Shuffle an array in place.
+ */
+function shuffle(arr) {
+  arr.sort((a, b) => Math.random() - 0.5);
+}
+
+/**
+ * Shuffles images in the gallery.
+ */
+function shuffleImagesInGallery() {
+  const gallery = document.getElementById('gallery');
+  const images = gallery.getElementsByTagName('img');
+  shuffle(Array.from(images));
+  for (var image of images) {
+    gallery.appendChild(image);
+  }
 }
