@@ -11,6 +11,11 @@ body {
   width: 700px;
 }
 
+#content p {
+  font: 15px Arial, sans-serif;
+  padding: 0 10px;
+}
+
 #gallery {
   height: 650px;
   overflow: scroll;
@@ -29,4 +34,53 @@ body {
     background: #8eb8ce;
     color: white;
     text-align: center;
+}
+
+.link {
+  background: #4b809bfd;
+  color: white;
+  font: bold;
+  text-decoration-line: none;
+}
+
+.link:hover {
+  background: white;
+  color: black;
+  text-decoration-line: underline;
+}
+
+#projects li {
+  font: 14px Arial, sans-serif;
+}
+
+.project-name {
+  color: #316988;
+  font: 17px;
+}
+
+#fact-container {
+  font: italic 30px Georgia, serif;
+  text-align: center;
+}
+
+#fact-container.shadow {
+  text-shadow: 0 0 15px #194485;
+}
+
+@keyframes shine {
+  from {
+    color: #1d3b7a;
+  }
+  to {
+    color: #60afe470;
+  }
+}
+
+#fact-container.shine {
+  animation: shine 1s infinite alternate;
+}
+
+#fact-container.dark {
+  background: #152568;
+  color: antiquewhite;
 }
