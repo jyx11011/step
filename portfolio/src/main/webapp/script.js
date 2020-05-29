@@ -26,3 +26,22 @@ function addRandomFact() {
   const factContainer = document.getElementById('fact-container');
   factContainer.innerText = fact;
 }
+
+/**
+ * Shuffle an array in place.
+ */
+function shuffle(arr) {
+  arr.sort((a, b) => Math.random() - 0.5);
+}
+
+/**
+ * Shuffles images in the gallery.
+ */
+function shuffleImagesInGallery() {
+  const gallery = document.getElementById('gallery');
+  const images = gallery.getElementsByTagName('img');
+  shuffle(Array.from(images));
+  for (var image of images) {
+    gallery.appendChild(image);
+  }
+}
