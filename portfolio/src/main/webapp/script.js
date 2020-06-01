@@ -59,6 +59,11 @@ function addAGreetingMessage() {
   fetch('/data')
     .then(response => response.json())
     .then(json => {
-      console.log(json);
+      const greetingContainer = document.getElementById('greeting-container');
+      for (var message of json) {
+        const messageElement = document.createElement('p');
+        messageElement.innerText = message;
+        greetingContainer.appendChild(messageElement);
+      }
     });
 }
