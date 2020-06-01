@@ -6,7 +6,7 @@
     <link rel="stylesheet" href="style.css">
     <script src="script.js"></script>
   </head>
-  <body>
+  <body onload="fetchComments()">
     <div id="content">
       <h1>My Portfolio - Jiang Yuxin</h1>
       <h3 class="sec-header">Introduction</h3>
@@ -69,6 +69,7 @@
             <button id="fact-button" onclick="addRandomFact()">Get a fact</button></p>
       <div id="fact-container"></div>
 
+      <div id="comments-container"></div>
       <form action="/data" method="POST">
         <textarea name="comment" placeholder="Comment" rows="3" cols="80"></textarea>
         <button type="submit">Submit</button>

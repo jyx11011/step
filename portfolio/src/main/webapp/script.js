@@ -53,17 +53,22 @@ function shuffleImagesInGallery() {
 }
 
 /**
- * Adds a greeting message from the servlet to the page.
+ * Fetch comments from server.
  */
-function addAGreetingMessage() {
+function fetchComments() {
   fetch('/data')
     .then(response => response.json())
     .then(json => {
-      const greetingContainer = document.getElementById('greeting-container');
-      for (var message of json) {
-        const messageElement = document.createElement('p');
-        messageElement.innerText = message;
-        greetingContainer.appendChild(messageElement);
+      const commentsContainer = document.getElementById('comments-container');
+      for (var comment of json) {
+        const commentElement = createElementForComment(comment);
+        commentsContainer.appendChild(commentElement);
       }
     });
+}
+
+function createElementForComment(comment) {
+  const commentElement = document.createElement('p');
+  commentElement.innerText = comment;
+  return commentElement;
 }
