@@ -34,7 +34,7 @@ function addRandomFact() {
 }
 
 /**
- * Shuffle an array in place.
+ * Shuffles an array in place.
  */
 function shuffle(arr) {
   arr.sort((a, b) => Math.random() - 0.5);
@@ -50,4 +50,16 @@ function shuffleImagesInGallery() {
   for (var image of images) {
     gallery.appendChild(image);
   }
+}
+
+/**
+ * Adds a greeting message from the servlet to the page.
+ */
+function addAGreetingMessage() {
+  fetch("/data")
+    .then(response => response.text())
+    .then(message => {
+      const greetingContainer = document.getElementById("greeting-container");
+      greetingContainer.innerHTML = message;
+    });
 }
