@@ -56,10 +56,10 @@ function shuffleImagesInGallery() {
  * Adds a greeting message from the servlet to the page.
  */
 function addAGreetingMessage() {
-  fetch("/data")
+  fetch('/data')
     .then(response => response.text())
     .then(message => {
-      const greetingContainer = document.getElementById("greeting-container");
+      const greetingContainer = document.getElementById('greeting-container');
       greetingContainer.innerHTML = message;
     });
 }
