@@ -57,9 +57,13 @@ function shuffleImagesInGallery() {
  */
 function addAGreetingMessage() {
   fetch('/data')
-    .then(response => response.text())
-    .then(message => {
+    .then(response => response.json())
+    .then(json => {
       const greetingContainer = document.getElementById('greeting-container');
-      greetingContainer.innerHTML = message;
+      for (var message of json) {
+        const messageElement = document.createElement('p');
+        messageElement.innerText = message;
+        greetingContainer.appendChild(messageElement);
+      }
     });
 }
