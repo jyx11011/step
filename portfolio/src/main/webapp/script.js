@@ -57,9 +57,8 @@ function shuffleImagesInGallery() {
  */
 function addAGreetingMessage() {
   fetch('/data')
-    .then(response => response.text())
-    .then(message => {
-      const greetingContainer = document.getElementById('greeting-container');
-      greetingContainer.innerHTML = message;
+    .then(response => response.json())
+    .then(json => {
+      console.log(json);
     });
 }
