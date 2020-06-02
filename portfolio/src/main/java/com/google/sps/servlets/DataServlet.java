@@ -17,17 +17,21 @@ package com.google.sps.servlets;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
+import com.google.appengine.api.datastore.FetchOptions;
+import com.google.appengine.api.datastore.FetchOptions.Builder;
 import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.Query;
 import com.google.gson.Gson;
 import java.io.IOException;
+import java.lang.Integer;
 import java.util.ArrayList;
+import java.util.Optional;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-/** Servlet that returns some example content. TODO: modify this file to handle comments data */
+/** Servlet that handle comments data */
 @WebServlet("/comments")
 public class DataServlet extends HttpServlet {
   
@@ -35,15 +39,7 @@ public class DataServlet extends HttpServlet {
     
   @Override
   public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
-    Query query = new Query("Comment");
-    PreparedQuery results = datastore.prepare(query);
-
-    ArrayList<String> comments = new ArrayList<>();
-    for (Entity entity: results.asIterable()) {
-      String content = (String) entity.getProperty("content");
-      comments.add(content);
-    }
-
+    ArrayList<String> comments = fetchComments(request);
     Gson gson = new Gson();
     String json = gson.toJson(comments);
 
@@ -60,5 +56,49 @@ public class DataServlet extends HttpServlet {
     datastore.put(commentEntity);
 
     response.sendRedirect("/index.html");
+  }
+
+  /** Returns comments fetched from datastore */
+  private ArrayList<String> fetchComments(HttpServletRequest request) {
+    //Prepare datastore query
+    Query query = new Query("Comment");
+    PreparedQuery results = datastore.prepare(query);
+    
+    //Set limit options
+    FetchOptions fetchOptions = FetchOptions.Builder.withDefaults();
+    Optional<Integer> limit = getLimit(request);
+    if (limit.isPresent()) {
+      fetchOptions = FetchOptions.Builder.withLimit(limit.get());
+    }
+
+    //Create comment list
+    ArrayList<String> comments = new ArrayList<>();
+    for (Entity entity: results.asIterable(fetchOptions)) {
+      String content = (String) entity.getProperty("content");
+      comments.add(content);
+    }
+    return comments;
+  }
+
+  /** Returns the limit of comments if the limit a non-negative interger. Otherwise, returns empty. */
+  private Optional<Integer> getLimit(HttpServletRequest request) {
+    if (request.getParameter("limit") == null) {
+      return Optional.empty();
+    }
+
+    //Check that the string is a valid integer.
+    String limitString = request.getParameter("limit");
+    int limit = -1;
+    try {
+      limit = Integer.parseInt(limitString);
+    } catch (NumberFormatException e) {
+      return Optional.empty();
+    }
+
+    //Check that the number is non-negative
+    if (limit < 0) {
+      return Optional.empty();
+    }
+    return Optional.of(limit);
   }
 }

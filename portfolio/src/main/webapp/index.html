@@ -69,7 +69,13 @@
             <button id="fact-button" onclick="addRandomFact()">Get a fact</button></p>
       <div id="fact-container"></div>
 
+      <form>
+        <input id="comment-limit" type="number" min="0" max="100"></input>
+        <button type="button" id="comment-limit" onclick="fetchCommentsWithLimit()">Submit</button>
+        <button type="reset" onclick="resetComments()">Reset</button>
+      </form>
       <div id="comments-container"></div>
+
       <form action="/comments" method="POST">
         <textarea name="comment" placeholder="Comment" rows="3" cols="80"></textarea>
         <button type="submit">Submit</button>

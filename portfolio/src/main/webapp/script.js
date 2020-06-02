@@ -53,18 +53,36 @@ function shuffleImagesInGallery() {
 }
 
 /**
- * Fetch comments from server.
+ * Returns the comment limit value.
  */
-function fetchComments() {
-  fetch('/comments')
+function getCommentLimit() {
+  const limitInput = document.getElementById('comment-limit');
+  return limitInput.value
+}
+
+/**
+ * Fetches comments with limit from server.
+ */
+function fetchComments(limit = '') {
+  fetch('/comments?limit=' + limit)
     .then(response => response.json())
     .then(json => {
       const commentsContainer = document.getElementById('comments-container');
+      commentsContainer.innerHTML = '';
       for (const comment of json) {
         const commentElement = createElementForComment(comment);
         commentsContainer.appendChild(commentElement);
       }
     });
+}
+
+function fetchCommentsWithLimit() {
+  fetchComments(getCommentLimit());
+  return false;
+}
+
+function resetComments() {
+  fetchComments();
 }
 
 function createElementForComment(comment) {
