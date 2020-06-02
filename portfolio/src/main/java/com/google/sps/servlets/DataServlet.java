@@ -17,11 +17,15 @@ package com.google.sps.servlets;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
+import com.google.appengine.api.datastore.FetchOptions;
+import com.google.appengine.api.datastore.FetchOptions.Builder;
 import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.Query;
 import com.google.gson.Gson;
 import java.io.IOException;
+import java.lang.Integer;
 import java.util.ArrayList;
+import java.util.Optional;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -38,7 +42,12 @@ public class DataServlet extends HttpServlet {
     PreparedQuery results = datastore.prepare(query);
 
     ArrayList<String> comments = new ArrayList<>();
-    for (Entity entity: results.asIterable()) {
+    FetchOptions fetchOptions = FetchOptions.Builder.withDefaults();
+    Optional<Integer> limit = getLimit(request);
+    if (limit.isPresent()) {
+      fetchOptions = FetchOptions.Builder.withLimit(limit.get());
+    }
+    for (Entity entity: results.asIterable(fetchOptions)) {
       String content = (String) entity.getProperty("content");
       comments.add(content);
     }
@@ -60,5 +69,27 @@ public class DataServlet extends HttpServlet {
     datastore.put(commentEntity);
 
     response.sendRedirect("/index.html");
+  }
+
+  /** Returns the limit of comments if the limit a non-negative interger. Otherwise, returns empty. */
+  private Optional<Integer> getLimit(HttpServletRequest request) {
+    if (request.getParameter("limit") == null) {
+      return Optional.empty();
+    }
+
+    //Check that the string is a valid integer.
+    String limitString = request.getParameter("limit");
+    int limit = -1;
+    try {
+      limit = Integer.parseInt(limitString);
+    } catch (NumberFormatException e) {
+      return Optional.empty();
+    }
+
+    //Check that the number is non-negative
+    if (limit < 0) {
+      return Optional.empty();
+    }
+    return Optional.of(limit);
   }
 }

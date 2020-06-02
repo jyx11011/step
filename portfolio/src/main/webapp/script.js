@@ -56,7 +56,7 @@ function shuffleImagesInGallery() {
  * Fetch comments from server.
  */
 function fetchComments() {
-  fetch('/comments')
+  fetch('/comments?limit=3')
     .then(response => response.json())
     .then(json => {
       const commentsContainer = document.getElementById('comments-container');
