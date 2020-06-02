@@ -31,10 +31,12 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-/** Servlet that returns some example content. TODO: modify this file to handle comments data */
+/** Servlet that handle comments data */
 @WebServlet("/comments")
 public class DataServlet extends HttpServlet {
-
+  
+  private DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+    
   @Override
   public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
     ArrayList<String> comments = fetchComments(request);
@@ -51,7 +53,6 @@ public class DataServlet extends HttpServlet {
 
     Entity commentEntity = new Entity("Comment");
     commentEntity.setProperty("content", comment);
-    DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
     datastore.put(commentEntity);
 
     response.sendRedirect("/index.html");
@@ -61,7 +62,6 @@ public class DataServlet extends HttpServlet {
   private ArrayList<String> fetchComments(HttpServletRequest request) {
     //Prepare datastore query
     Query query = new Query("Comment");
-    DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
     PreparedQuery results = datastore.prepare(query);
     
     //Set limit options
