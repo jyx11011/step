@@ -47,23 +47,28 @@ function shuffleImagesInGallery() {
   const gallery = document.getElementById('gallery');
   const images = gallery.getElementsByTagName('img');
   shuffle(Array.from(images));
-  for (var image of images) {
+  for (const image of images) {
     gallery.appendChild(image);
   }
 }
 
 /**
- * Adds a greeting message from the servlet to the page.
+ * Fetch comments from server.
  */
-function addAGreetingMessage() {
-  fetch('/data')
+function fetchComments() {
+  fetch('/comments')
     .then(response => response.json())
     .then(json => {
-      const greetingContainer = document.getElementById('greeting-container');
-      for (var message of json) {
-        const messageElement = document.createElement('p');
-        messageElement.innerText = message;
-        greetingContainer.appendChild(messageElement);
+      const commentsContainer = document.getElementById('comments-container');
+      for (const comment of json) {
+        const commentElement = createElementForComment(comment);
+        commentsContainer.appendChild(commentElement);
       }
     });
+}
+
+function createElementForComment(comment) {
+  const commentElement = document.createElement('p');
+  commentElement.innerText = comment;
+  return commentElement;
 }

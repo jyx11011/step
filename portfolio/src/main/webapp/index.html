@@ -6,11 +6,9 @@
     <link rel="stylesheet" href="style.css">
     <script src="script.js"></script>
   </head>
-  <body>
+  <body onload="fetchComments()">
     <div id="content">
       <h1>My Portfolio - Jiang Yuxin</h1>
-      <button id="greet-button" onclick="addAGreetingMessage()">Greet me</button>
-      <div id="greeting-container"></div>
       <h3 class="sec-header">Introduction</h3>
       <p>Hi everyone, I’m Yuxin. I’m a second year Computer Science student in 
           NUS. In my free time, I love traveling, exploring food from different 
@@ -70,6 +68,12 @@
       <p>Click here to get a random fact about me: 
             <button id="fact-button" onclick="addRandomFact()">Get a fact</button></p>
       <div id="fact-container"></div>
+
+      <div id="comments-container"></div>
+      <form action="/comments" method="POST">
+        <textarea name="comment" placeholder="Comment" rows="3" cols="80"></textarea>
+        <button type="submit">Submit</button>
+      </form>
     </div>
   </body>
 </html>
