@@ -37,21 +37,7 @@ public class DataServlet extends HttpServlet {
 
   @Override
   public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
-    Query query = new Query("Comment");
-    DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
-    PreparedQuery results = datastore.prepare(query);
-
-    ArrayList<String> comments = new ArrayList<>();
-    FetchOptions fetchOptions = FetchOptions.Builder.withDefaults();
-    Optional<Integer> limit = getLimit(request);
-    if (limit.isPresent()) {
-      fetchOptions = FetchOptions.Builder.withLimit(limit.get());
-    }
-    for (Entity entity: results.asIterable(fetchOptions)) {
-      String content = (String) entity.getProperty("content");
-      comments.add(content);
-    }
-
+    ArrayList<String> comments = fetchComments(request);
     Gson gson = new Gson();
     String json = gson.toJson(comments);
 
@@ -69,6 +55,29 @@ public class DataServlet extends HttpServlet {
     datastore.put(commentEntity);
 
     response.sendRedirect("/index.html");
+  }
+
+  /** Returns comments fetched from datastore */
+  private ArrayList<String> fetchComments(HttpServletRequest request) {
+    //Prepare datastore query
+    Query query = new Query("Comment");
+    DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+    PreparedQuery results = datastore.prepare(query);
+    
+    //Set limit options
+    FetchOptions fetchOptions = FetchOptions.Builder.withDefaults();
+    Optional<Integer> limit = getLimit(request);
+    if (limit.isPresent()) {
+      fetchOptions = FetchOptions.Builder.withLimit(limit.get());
+    }
+
+    //Create comment list
+    ArrayList<String> comments = new ArrayList<>();
+    for (Entity entity: results.asIterable(fetchOptions)) {
+      String content = (String) entity.getProperty("content");
+      comments.add(content);
+    }
+    return comments;
   }
 
   /** Returns the limit of comments if the limit a non-negative interger. Otherwise, returns empty. */
