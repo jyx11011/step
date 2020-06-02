@@ -34,8 +34,8 @@ import javax.servlet.http.HttpServletResponse;
 /** Servlet that handle comments data */
 @WebServlet("/comments")
 public class DataServlet extends HttpServlet {
-
-  DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+  
+  private DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
     
   @Override
   public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
