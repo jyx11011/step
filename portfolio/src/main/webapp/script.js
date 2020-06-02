@@ -47,7 +47,7 @@ function shuffleImagesInGallery() {
   const gallery = document.getElementById('gallery');
   const images = gallery.getElementsByTagName('img');
   shuffle(Array.from(images));
-  for (var image of images) {
+  for (const image of images) {
     gallery.appendChild(image);
   }
 }
@@ -60,7 +60,7 @@ function fetchComments() {
     .then(response => response.json())
     .then(json => {
       const commentsContainer = document.getElementById('comments-container');
-      for (var comment of json) {
+      for (const comment of json) {
         const commentElement = createElementForComment(comment);
         commentsContainer.appendChild(commentElement);
       }
