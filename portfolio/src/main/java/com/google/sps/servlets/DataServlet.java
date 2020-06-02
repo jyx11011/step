@@ -31,10 +31,11 @@ import javax.servlet.http.HttpServletResponse;
 @WebServlet("/comments")
 public class DataServlet extends HttpServlet {
   
+  private DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+    
   @Override
   public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
     Query query = new Query("Comment");
-    DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
     PreparedQuery results = datastore.prepare(query);
 
     ArrayList<String> comments = new ArrayList<>();
@@ -56,7 +57,6 @@ public class DataServlet extends HttpServlet {
 
     Entity commentEntity = new Entity("Comment");
     commentEntity.setProperty("content", comment);
-    DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
     datastore.put(commentEntity);
 
     response.sendRedirect("/index.html");
