@@ -91,7 +91,7 @@ function createElementForComment(comment) {
   contentElement.innerText = comment.content;
   const deleteButton = document.createElement('button');
   deleteButton.innerText = 'Delete';
-  deleteButton.addEventListener("click", () => deleteCommentWithId(comment.id));
+  deleteButton.addEventListener('click', () => deleteCommentWithId(comment.id));
   commentElement.append(contentElement, deleteButton);
   return commentElement;
 }
