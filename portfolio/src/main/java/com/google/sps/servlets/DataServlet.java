@@ -22,6 +22,7 @@ import com.google.appengine.api.datastore.FetchOptions.Builder;
 import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.Query;
 import com.google.appengine.api.datastore.Query.FilterOperator;
+import com.google.appengine.api.datastore.Query.SortDirection;
 import com.google.gson.Gson;
 import com.google.sps.data.Comment;
 import java.io.IOException;
@@ -76,7 +77,7 @@ public class DataServlet extends HttpServlet {
   /** Returns comments fetched from datastore */
   private ArrayList<Comment> fetchComments(HttpServletRequest request) {
     //Prepare datastore query
-    Query query = new Query("Comment");
+    Query query = new Query("Comment").addSort("timestamp", SortDirection.DESCENDING);
     PreparedQuery results = datastore.prepare(query);
     
     //Set limit options
@@ -100,7 +101,8 @@ public class DataServlet extends HttpServlet {
     String content = (String) entity.getProperty("content");
     String id = (String) entity.getProperty("id");
     String user = (String) entity.getProperty("user");
-    Comment comment = new Comment(id, content, user);
+    long timestamp = (long) entity.getProperty("timestamp");
+    Comment comment = new Comment(id, content, user, timestamp);
     return comment;
   }
 
@@ -110,6 +112,7 @@ public class DataServlet extends HttpServlet {
     commentEntity.setProperty("content", comment.getContent());
     commentEntity.setProperty("id", comment.getIdString());
     commentEntity.setProperty("user", comment.getUser());
+    commentEntity.setProperty("timestamp", comment.getTimestamp());
     return commentEntity;
   }
 

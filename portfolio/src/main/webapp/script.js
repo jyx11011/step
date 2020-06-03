@@ -63,7 +63,7 @@ function getCommentLimit() {
 /**
  * Fetches comments with limit from server.
  */
-function fetchComments(limit = '') {
+function fetchComments(limit = '', ) {
   fetch('/comments?limit=' + limit)
     .then(response => response.json())
     .then(json => {
@@ -89,12 +89,14 @@ function createElementForComment(comment) {
   const commentElement = document.createElement('div');
   const userNameElement = document.createElement('p');
   userNameElement.innerText = 'username: ' + comment.user;
+  const timestampElement = document.createElement('p');
+  timestampElement.innerText = (new Date(parseInt(comment.timestamp))).toLocaleString();
   const contentElement = document.createElement('p');
   contentElement.innerText = comment.content;
   const deleteButton = document.createElement('button');
   deleteButton.innerText = 'Delete';
   deleteButton.addEventListener('click', () => deleteCommentWithId(comment.id));
-  commentElement.append(userNameElement, contentElement, deleteButton);
+  commentElement.append(userNameElement, timestampElement, contentElement, deleteButton);
   return commentElement;
 }
 
@@ -106,4 +108,8 @@ function deleteAllComments() {
 function deleteCommentWithId(id) {
   const request = new Request('/comments?id=' + id, { method: 'DELETE' });
   fetch(request).then(response => fetchComments());
+}
+
+function filterCommentsByUsername(username) {
+
 }
