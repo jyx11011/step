@@ -21,6 +21,7 @@ import com.google.appengine.api.datastore.FetchOptions;
 import com.google.appengine.api.datastore.FetchOptions.Builder;
 import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.Query;
+import com.google.appengine.api.datastore.Query.FilterOperator;
 import com.google.gson.Gson;
 import com.google.sps.data.Comment;
 import java.io.IOException;
@@ -59,6 +60,18 @@ public class DataServlet extends HttpServlet {
     datastore.put(commentEntity);
 
     response.sendRedirect("/index.html");
+  }
+
+  @Override
+  public void doDelete(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    String commentId = request.getParameter("id");
+    
+    Query query = new Query("Comment").addFilter("id", FilterOperator.EQUAL, commentId);
+    PreparedQuery results = datastore.prepare(query);
+
+    for (Entity entity: results.asIterable()) {
+      datastore.delete(entity.getKey());
+    }
   }
 
   /** Returns comments fetched from datastore */
