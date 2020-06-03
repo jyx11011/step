@@ -13,7 +13,7 @@ import javax.servlet.http.HttpServletResponse;
 
 /** Servlet that handle comments deletion. */
 @WebServlet("/delete-all-comments")
-public class DeleteAllComments extends HttpServlet {
+public class DeleteAllCommentsServlet extends HttpServlet {
   private DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
   
   @Override
