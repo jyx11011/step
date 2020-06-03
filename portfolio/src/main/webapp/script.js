@@ -87,12 +87,14 @@ function resetComments() {
 
 function createElementForComment(comment) {
   const commentElement = document.createElement('div');
+  const userNameElement = document.createElement('p');
+  userNameElement.innerText = 'username: ' + comment.user;
   const contentElement = document.createElement('p');
   contentElement.innerText = comment.content;
   const deleteButton = document.createElement('button');
   deleteButton.innerText = 'Delete';
-  deleteButton.addEventListener("click", () => deleteCommentWithId(comment.id));
-  commentElement.append(contentElement, deleteButton);
+  deleteButton.addEventListener('click', () => deleteCommentWithId(comment.id));
+  commentElement.append(userNameElement, contentElement, deleteButton);
   return commentElement;
 }
 

@@ -8,15 +8,18 @@ import java.util.UUID;
 public class Comment {
   private UUID id;
   private String content;
+  private String user;
   
-  public Comment(String content) {
+  public Comment(String content, String user) {
     this.id = UUID.randomUUID();
     this.content = content;
+    this.user = user;
   }
 
-  public Comment(String id, String content) {
+  public Comment(String id, String content, String user) {
     this.id = UUID.fromString(id);
     this.content = content;
+    this.user = user;
   }
 
   public UUID getId() {
@@ -29,5 +32,9 @@ public class Comment {
 
   public String getContent() {
     return content;
+  }
+
+  public String getUser() {
+    return user;
   }
 }

@@ -51,12 +51,11 @@ public class DataServlet extends HttpServlet {
 
   @Override
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    String user = request.getParameter("username");
     String commentContent = request.getParameter("comment");
-    Comment comment = new Comment(commentContent);
-
-    Entity commentEntity = new Entity("Comment");
-    commentEntity.setProperty("content", comment.getContent());
-    commentEntity.setProperty("id", comment.getIdString());
+    
+    Comment comment = new Comment(commentContent, user);
+    Entity commentEntity = getCommentEntityFromComment(comment);
     datastore.put(commentEntity);
 
     response.sendRedirect("/index.html");
@@ -90,12 +89,28 @@ public class DataServlet extends HttpServlet {
     //Create comment list
     ArrayList<Comment> comments = new ArrayList<>();
     for (Entity entity: results.asIterable(fetchOptions)) {
-      String content = (String) entity.getProperty("content");
-      String id = (String) entity.getProperty("id");
-      Comment comment = new Comment(id, content);
+      Comment comment = getCommentFromEntity(entity);
       comments.add(comment);
     }
     return comments;
+  }
+
+  /** Returns a Comment object constructed from the given entity. */
+  private Comment getCommentFromEntity(Entity entity) {
+    String content = (String) entity.getProperty("content");
+    String id = (String) entity.getProperty("id");
+    String user = (String) entity.getProperty("user");
+    Comment comment = new Comment(id, content, user);
+    return comment;
+  }
+
+  /** Returns a Comment entity constructed from the given Comment object. */
+  private Entity getCommentEntityFromComment(Comment comment) {
+    Entity commentEntity = new Entity("Comment");
+    commentEntity.setProperty("content", comment.getContent());
+    commentEntity.setProperty("id", comment.getIdString());
+    commentEntity.setProperty("user", comment.getUser());
+    return commentEntity;
   }
 
   /** Returns the limit of comments if the limit a non-negative interger. Otherwise, returns empty. */
