@@ -87,7 +87,7 @@ function resetComments() {
 
 function createElementForComment(comment) {
   const commentElement = document.createElement('p');
-  commentElement.innerText = comment;
+  commentElement.innerText = comment.content;
   return commentElement;
 }
 

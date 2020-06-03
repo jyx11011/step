@@ -23,6 +23,10 @@ public class Comment {
     return id;
   }
 
+  public String getIdString() {
+    return id.toString();
+  }
+
   public String getContent() {
     return content;
   }

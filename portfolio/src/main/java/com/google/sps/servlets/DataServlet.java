@@ -22,6 +22,7 @@ import com.google.appengine.api.datastore.FetchOptions.Builder;
 import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.Query;
 import com.google.gson.Gson;
+import com.google.sps.data.Comment;
 import java.io.IOException;
 import java.lang.Integer;
 import java.util.ArrayList;
@@ -39,7 +40,7 @@ public class DataServlet extends HttpServlet {
     
   @Override
   public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
-    ArrayList<String> comments = fetchComments(request);
+    ArrayList<Comment> comments = fetchComments(request);
     Gson gson = new Gson();
     String json = gson.toJson(comments);
 
@@ -49,17 +50,19 @@ public class DataServlet extends HttpServlet {
 
   @Override
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
-    String comment = request.getParameter("comment");
+    String commentContent = request.getParameter("comment");
+    Comment comment = new Comment(commentContent);
 
     Entity commentEntity = new Entity("Comment");
-    commentEntity.setProperty("content", comment);
+    commentEntity.setProperty("content", comment.getContent());
+    commentEntity.setProperty("id", comment.getIdString());
     datastore.put(commentEntity);
 
     response.sendRedirect("/index.html");
   }
 
   /** Returns comments fetched from datastore */
-  private ArrayList<String> fetchComments(HttpServletRequest request) {
+  private ArrayList<Comment> fetchComments(HttpServletRequest request) {
     //Prepare datastore query
     Query query = new Query("Comment");
     PreparedQuery results = datastore.prepare(query);
@@ -72,10 +75,12 @@ public class DataServlet extends HttpServlet {
     }
 
     //Create comment list
-    ArrayList<String> comments = new ArrayList<>();
+    ArrayList<Comment> comments = new ArrayList<>();
     for (Entity entity: results.asIterable(fetchOptions)) {
       String content = (String) entity.getProperty("content");
-      comments.add(content);
+      String id = (String) entity.getProperty("id");
+      Comment comment = new Comment(id, content);
+      comments.add(comment);
     }
     return comments;
   }
