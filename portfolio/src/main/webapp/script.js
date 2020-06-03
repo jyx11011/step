@@ -90,3 +90,8 @@ function createElementForComment(comment) {
   commentElement.innerText = comment;
   return commentElement;
 }
+
+function deleteAllComments() {
+  const request = new Request('/delete-all-comments', {method: 'POST'});
+  fetch(request).then(_ => fetchComments());
+}

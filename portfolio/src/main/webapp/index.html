@@ -74,8 +74,8 @@
         <button type="button" id="comment-limit" onclick="fetchCommentsWithLimit()">Submit</button>
         <button type="reset" onclick="resetComments()">Reset</button>
       </form>
+      <button type="button" onclick="deleteAllComments()">Delete All</button>
       <div id="comments-container"></div>
-
       <form action="/comments" method="POST">
         <textarea name="comment" placeholder="Comment" rows="3" cols="80"></textarea>
         <button type="submit">Submit</button>
