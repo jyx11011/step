@@ -97,7 +97,7 @@ function createElementForComment(comment) {
 }
 
 function deleteAllComments() {
-  const request = new Request('/delete-all-comments', {method: 'POST'});
+  const request = new Request('/comments', { method: 'DELETE' });
   fetch(request).then(_ => fetchComments());
 }
 

@@ -64,13 +64,11 @@ public class DataServlet extends HttpServlet {
 
   @Override
   public void doDelete(HttpServletRequest request, HttpServletResponse response) throws IOException {
-    String commentId = request.getParameter("id");
-    
-    Query query = new Query("Comment").addFilter("id", FilterOperator.EQUAL, commentId);
-    PreparedQuery results = datastore.prepare(query);
-
-    for (Entity entity: results.asIterable()) {
-      datastore.delete(entity.getKey());
+    if (request.getParameterMap().containsKey("id")) {
+      String commentId = request.getParameter("id");
+      deleteCommentWithId(commentId);
+    } else {
+      deleteAllComments();
     }
   }
 
@@ -118,5 +116,25 @@ public class DataServlet extends HttpServlet {
       return Optional.empty();
     }
     return Optional.of(limit);
+  }
+
+  /** Deletes all comments in datastore. */
+  private void deleteAllComments() {
+    Query query = new Query("Comment");
+    PreparedQuery results = datastore.prepare(query);
+    
+    for (Entity commentEntity: results.asIterable()) {
+      datastore.delete(commentEntity.getKey());
+    }
+  }
+
+  /** Deletes the comment with the given id. */
+  private void deleteCommentWithId(String id) {
+    Query query = new Query("Comment").addFilter("id", FilterOperator.EQUAL, id);
+    PreparedQuery results = datastore.prepare(query);
+
+    for (Entity entity: results.asIterable()) {
+      datastore.delete(entity.getKey());
+    }
   }
 }
