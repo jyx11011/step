@@ -75,6 +75,12 @@
         <button type="reset" onclick="resetComments()">Reset</button>
       </form>
       <button type="button" onclick="deleteAllComments()">Delete All</button>
+      
+      <br>
+      <label>Filter by username</label>
+      <input type="text" id="username-filter">
+      <button type="button" onclick="filterCommentsByUsername()">Go</button>
+      
       <div id="comments-container"></div>
       <form action="/comments" method="POST">
         <label>Username</label>

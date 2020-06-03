@@ -63,8 +63,8 @@ function getCommentLimit() {
 /**
  * Fetches comments with limit from server.
  */
-function fetchComments(limit = '', ) {
-  fetch('/comments?limit=' + limit)
+function fetchComments(limit = undefined, username = undefined) {
+  fetch('/comments?' + getRequestParameter(limit, username))
     .then(response => response.json())
     .then(json => {
       const commentsContainer = document.getElementById('comments-container');
@@ -76,8 +76,12 @@ function fetchComments(limit = '', ) {
     });
 }
 
+function getRequestParameter(limit, username) {
+  return 'limit=' + limit + (username != null ? '&username=' + username : '');
+}
+
 function fetchCommentsWithLimit() {
-  fetchComments(getCommentLimit());
+  fetchComments(getCommentLimit(), undefined);
   return false;
 }
 
@@ -110,6 +114,7 @@ function deleteCommentWithId(id) {
   fetch(request).then(response => fetchComments());
 }
 
-function filterCommentsByUsername(username) {
-
+function filterCommentsByUsername() {
+  const username = document.getElementById('username-filter').value;
+  fetchComments(undefined, username);
 }

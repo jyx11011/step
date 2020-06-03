@@ -78,7 +78,6 @@ public class DataServlet extends HttpServlet {
   private ArrayList<Comment> fetchComments(HttpServletRequest request) {
     //Prepare datastore query
     Query query = new Query("Comment").addSort("timestamp", SortDirection.DESCENDING);
-    PreparedQuery results = datastore.prepare(query);
     
     //Set limit options
     FetchOptions fetchOptions = FetchOptions.Builder.withDefaults();
@@ -86,8 +85,15 @@ public class DataServlet extends HttpServlet {
     if (limit.isPresent()) {
       fetchOptions = FetchOptions.Builder.withLimit(limit.get());
     }
+    
+    //Set username filter
+    Optional<String> username = getUsername(request);
+    if (username.isPresent()) {
+      query.addFilter("user", FilterOperator.EQUAL, username.get());
+    }
 
     //Create comment list
+    PreparedQuery results = datastore.prepare(query);
     ArrayList<Comment> comments = new ArrayList<>();
     for (Entity entity: results.asIterable(fetchOptions)) {
       Comment comment = getCommentFromEntity(entity);
@@ -114,6 +120,14 @@ public class DataServlet extends HttpServlet {
     commentEntity.setProperty("user", comment.getUser());
     commentEntity.setProperty("timestamp", comment.getTimestamp());
     return commentEntity;
+  }
+
+  /** Returns the username requested by the client if it exists. */
+  private Optional<String> getUsername(HttpServletRequest request) {
+    if (request.getParameter("username") == null) {
+      return Optional.empty();
+    }
+    return Optional.of(request.getParameter("username"));
   }
 
   /** Returns the limit of comments if the limit a non-negative interger. Otherwise, returns empty. */
