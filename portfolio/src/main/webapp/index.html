@@ -80,6 +80,13 @@
       <label>Filter by username</label>
       <input type="text" id="username-filter">
       <button type="button" onclick="filterCommentsByUsername()">Go</button>
+
+      <label for="comment-order">Sort by:</label>
+      <select name="comment-order" id="comment-order" onchange="sortComment()">
+        <option value="Newest">Newest</option>
+        <option value="Oldest">Oldest</option>
+        <option value="User">User</option>
+      </select>
       
       <div id="comments-container"></div>
       <form action="/comments" method="POST">
