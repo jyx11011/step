@@ -66,7 +66,7 @@ public class DataServlet extends HttpServlet {
   public void doDelete(HttpServletRequest request, HttpServletResponse response) throws IOException {
     if (request.getParameterMap().containsKey("id")) {
       String commentId = request.getParameter("id");
-      deleteCommentWithId(commentId);
+      deleteComment(commentId);
     } else {
       deleteAllComments();
     }
@@ -74,24 +74,25 @@ public class DataServlet extends HttpServlet {
 
   /** Returns comments fetched from datastore */
   private ArrayList<Comment> fetchComments(HttpServletRequest request) {
-    //Prepare datastore query
-    Query query = new Query("Comment").addSort("timestamp", SortDirection.DESCENDING);
-    
-    //Set limit options
+    // Prepare datastore query
+    Query query = new Query("Comment");
+
+    // Set limit options
     FetchOptions fetchOptions = FetchOptions.Builder.withDefaults();
     Optional<Integer> limit = getLimit(request);
     if (limit.isPresent()) {
       fetchOptions = FetchOptions.Builder.withLimit(limit.get());
     }
     
-    //Set username filter
+    // Set username filter
     Optional<String> username = getUsername(request);
     if (username.isPresent()) {
       query.addFilter("user", FilterOperator.EQUAL, username.get());
     }
 
-    //Create comment list
+    // Create comment list
     PreparedQuery results = datastore.prepare(query);
+
     ArrayList<Comment> comments = new ArrayList<>();
     for (Entity entity: results.asIterable(fetchOptions)) {
       Comment comment = getCommentFromEntity(entity);
@@ -134,7 +135,7 @@ public class DataServlet extends HttpServlet {
       return Optional.empty();
     }
 
-    //Check that the string is a valid integer.
+    // Check that the string is a valid integer.
     String limitString = request.getParameter("limit");
     int limit = -1;
     try {
@@ -143,7 +144,7 @@ public class DataServlet extends HttpServlet {
       return Optional.empty();
     }
 
-    //Check that the number is non-negative
+    // Check that the number is non-negative
     if (limit < 0) {
       return Optional.empty();
     }
@@ -161,7 +162,7 @@ public class DataServlet extends HttpServlet {
   }
 
   /** Deletes the comment with the given id. */
-  private void deleteCommentWithId(String id) {
+  private void deleteComment(String id) {
     Query query = new Query("Comment").addFilter("id", FilterOperator.EQUAL, id);
     PreparedQuery results = datastore.prepare(query);
 
