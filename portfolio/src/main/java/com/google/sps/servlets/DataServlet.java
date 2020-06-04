@@ -56,7 +56,7 @@ public class DataServlet extends HttpServlet {
     String commentContent = request.getParameter("comment");
     
     Comment comment = new Comment(commentContent, user);
-    Entity commentEntity = getCommentEntityFromComment(comment);
+    Entity commentEntity = transformCommentToEntity(comment);
     datastore.put(commentEntity);
 
     response.sendRedirect("/index.html");
@@ -66,7 +66,7 @@ public class DataServlet extends HttpServlet {
   public void doDelete(HttpServletRequest request, HttpServletResponse response) throws IOException {
     if (request.getParameterMap().containsKey("id")) {
       String commentId = request.getParameter("id");
-      deleteCommentWithId(commentId);
+      deleteComment(commentId);
     } else {
       deleteAllComments();
     }
@@ -74,38 +74,40 @@ public class DataServlet extends HttpServlet {
 
   /** Returns comments fetched from datastore */
   private ArrayList<Comment> fetchComments(HttpServletRequest request) {
-    //Prepare datastore query
+    // Prepare datastore query
     Query query = new Query("Comment");
-    
-    //Set limit options
+
+    // Set limit options
     FetchOptions fetchOptions = FetchOptions.Builder.withDefaults();
     Optional<Integer> limit = getLimit(request);
     if (limit.isPresent()) {
       fetchOptions = FetchOptions.Builder.withLimit(limit.get());
     }
     
-    //Set username filter
+    // Set username filter
     Optional<String> username = getUsername(request);
     if (username.isPresent()) {
       query.addFilter("user", FilterOperator.EQUAL, username.get());
     }
 
-    //Add sort order
+    // Add sort order
     SortOrder sortOrder = getSortOrder(request);
     query.addSort(sortOrder.property, sortOrder.sortDirection);
 
-    //Create comment list
+    // Create comment list
+
     PreparedQuery results = datastore.prepare(query);
+
     ArrayList<Comment> comments = new ArrayList<>();
     for (Entity entity: results.asIterable(fetchOptions)) {
-      Comment comment = getCommentFromEntity(entity);
+      Comment comment = transformEntityToComment(entity);
       comments.add(comment);
     }
     return comments;
   }
 
   /** Returns a Comment object constructed from the given entity. */
-  private Comment getCommentFromEntity(Entity entity) {
+  private Comment transformEntityToComment(Entity entity) {
     String content = (String) entity.getProperty("content");
     String id = (String) entity.getProperty("id");
     String user = (String) entity.getProperty("user");
@@ -115,7 +117,7 @@ public class DataServlet extends HttpServlet {
   }
 
   /** Returns a Comment entity constructed from the given Comment object. */
-  private Entity getCommentEntityFromComment(Comment comment) {
+  private Entity transformCommentToEntity(Comment comment) {
     Entity commentEntity = new Entity("Comment");
     commentEntity.setProperty("content", comment.getContent());
     commentEntity.setProperty("id", comment.getIdString());
@@ -132,8 +134,9 @@ public class DataServlet extends HttpServlet {
     return Optional.of(request.getParameter("username"));
   }
 
-  /** Returns the order for sorting comments requested by the client if it exists.
-   *  Otherwise, returns sorting by newest by default.
+  /** 
+   * Returns the order for sorting comments requested by the client if it exists.
+   * Otherwise, returns sorting by newest by default.
    */
   private SortOrder getSortOrder(HttpServletRequest request) {
     if (request.getParameter("order") == null) {
@@ -157,7 +160,7 @@ public class DataServlet extends HttpServlet {
       return Optional.empty();
     }
 
-    //Check that the string is a valid integer.
+    // Check that the string is a valid integer.
     String limitString = request.getParameter("limit");
     int limit = -1;
     try {
@@ -166,7 +169,7 @@ public class DataServlet extends HttpServlet {
       return Optional.empty();
     }
 
-    //Check that the number is non-negative
+    // Check that the number is non-negative
     if (limit < 0) {
       return Optional.empty();
     }
@@ -184,7 +187,7 @@ public class DataServlet extends HttpServlet {
   }
 
   /** Deletes the comment with the given id. */
-  private void deleteCommentWithId(String id) {
+  private void deleteComment(String id) {
     Query query = new Query("Comment").addFilter("id", FilterOperator.EQUAL, id);
     PreparedQuery results = datastore.prepare(query);
 
