@@ -56,7 +56,7 @@ public class DataServlet extends HttpServlet {
     String commentContent = request.getParameter("comment");
     
     Comment comment = new Comment(commentContent, user);
-    Entity commentEntity = getCommentEntityFromComment(comment);
+    Entity commentEntity = transformCommentToEntity(comment);
     datastore.put(commentEntity);
 
     response.sendRedirect("/index.html");
@@ -95,14 +95,14 @@ public class DataServlet extends HttpServlet {
 
     ArrayList<Comment> comments = new ArrayList<>();
     for (Entity entity: results.asIterable(fetchOptions)) {
-      Comment comment = getCommentFromEntity(entity);
+      Comment comment = transformEntityToComment(entity);
       comments.add(comment);
     }
     return comments;
   }
 
   /** Returns a Comment object constructed from the given entity. */
-  private Comment getCommentFromEntity(Entity entity) {
+  private Comment transformEntityToComment(Entity entity) {
     String content = (String) entity.getProperty("content");
     String id = (String) entity.getProperty("id");
     String user = (String) entity.getProperty("user");
@@ -112,7 +112,7 @@ public class DataServlet extends HttpServlet {
   }
 
   /** Returns a Comment entity constructed from the given Comment object. */
-  private Entity getCommentEntityFromComment(Comment comment) {
+  private Entity transformCommentToEntity(Comment comment) {
     Entity commentEntity = new Entity("Comment");
     commentEntity.setProperty("content", comment.getContent());
     commentEntity.setProperty("id", comment.getIdString());
