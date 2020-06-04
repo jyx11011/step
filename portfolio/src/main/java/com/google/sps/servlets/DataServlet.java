@@ -95,7 +95,6 @@ public class DataServlet extends HttpServlet {
     query.addSort(sortOrder.property, sortOrder.sortDirection);
 
     // Create comment list
-
     PreparedQuery results = datastore.prepare(query);
 
     ArrayList<Comment> comments = new ArrayList<>();
