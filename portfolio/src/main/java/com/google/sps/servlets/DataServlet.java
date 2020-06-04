@@ -142,12 +142,12 @@ public class DataServlet extends HttpServlet {
     if (request.getParameter("order") == null) {
       return new SortOrder("timestamp", SortDirection.DESCENDING);
     }
-    switch (request.getParameter("order")) {
-      case "Newest":
+    switch (request.getParameter("order").toLowerCase()) {
+      case "newest":
         return new SortOrder("timestamp", SortDirection.DESCENDING);
-      case "Oldest":
+      case "oldest":
         return new SortOrder("timestamp", SortDirection.ASCENDING);
-      case "User":
+      case "user":
         return new SortOrder("user", SortDirection.ASCENDING);
       default:
         return new SortOrder("timestamp", SortDirection.DESCENDING);
@@ -200,7 +200,7 @@ public class DataServlet extends HttpServlet {
     String property;
     SortDirection sortDirection;
 
-    public SortOrder(String property, SortDirection sortDirection) {
+    SortOrder(String property, SortDirection sortDirection) {
       this.property = property;
       this.sortDirection = sortDirection;
     }

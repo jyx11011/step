@@ -56,8 +56,8 @@ function shuffleImagesInGallery() {
  * Returns the comment limit value.
  */
 function getCommentLimit() {
-  const limitInput = document.getElementById('comment-limit');
-  return limitInput.value
+  const limitInput = document.getElementById('comment-limit').value;
+  return limitInput ? limitInput : undefined;
 }
 
 /**
@@ -77,10 +77,22 @@ function getCommentsSortOrder() {
 }
 
 /**
- * Fetches comments with limit from server.
+ * Fetches comments that satisfy user's requirements.
  */
-function fetchComments(limit = undefined, username = undefined, order = undefined) {
-  fetch('/comments?' + getRequestParameter(limit, username, order))
+function fetchCommentsWithUserInput() {
+  const limit = getCommentLimit();
+  const usernameFilter = getUsernameFilter();
+  const sortOrder = getCommentsSortOrder();
+  const map = new Map([['limit', limit], ['username', usernameFilter], ['order', sortOrder]]);
+  fetchComments(map);
+  return false;
+}
+
+/**
+ * Fetches comments with the given requirements.
+ */
+function fetchComments(requirements) {
+  fetch('/comments' + getRequestParameter(requirements))
     .then(response => response.json())
     .then(json => {
       const commentsContainer = document.getElementById('comments-container');
@@ -92,18 +104,33 @@ function fetchComments(limit = undefined, username = undefined, order = undefine
     });
 }
 
-function getRequestParameter(limit, username, order) {
-  return 'limit=' + limit 
-          + (username != null ? '&username=' + username : '')
-          + (order != null ? '&order=' + order : '');
+/**
+ * Returns a request parameter string for the given key,value paris.
+ */
+function getRequestParameter(map) {
+  if (isUndefined(map)) {
+    return '';
+  }
+
+  let results = '';
+  let first = true;
+  for(const [key, value] of map.entries()) {
+    if (isUndefined(value)) {
+      continue;
+    }
+    if (first) {
+      results = '?';
+      first = false;
+    } else {
+      results += '&';
+    }
+    results += key + '=' + value;
+  }
+  return results;
 }
 
-function fetchCommentsWithUserInput() {
-  const limit = getCommentLimit();
-  const usernameFilter = getUsernameFilter();
-  const sortOrder = getCommentsSortOrder();
-  fetchComments(limit, usernameFilter, sortOrder);
-  return false;
+function isUndefined(value) {
+  return typeof value == 'undefined'
 }
 
 function resetComments() {
