@@ -66,7 +66,7 @@ public class DataServlet extends HttpServlet {
   public void doDelete(HttpServletRequest request, HttpServletResponse response) throws IOException {
     if (request.getParameterMap().containsKey("id")) {
       String commentId = request.getParameter("id");
-      deleteCommentWithId(commentId);
+      deleteComment(commentId);
     } else {
       deleteAllComments();
     }
@@ -129,7 +129,7 @@ public class DataServlet extends HttpServlet {
   }
 
   /** Deletes the comment with the given id. */
-  private void deleteCommentWithId(String id) {
+  private void deleteComment(String id) {
     Query query = new Query("Comment").addFilter("id", FilterOperator.EQUAL, id);
     PreparedQuery results = datastore.prepare(query);
 
