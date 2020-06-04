@@ -101,7 +101,7 @@ function deleteAllComments() {
   fetch(request).then(_ => fetchComments());
 }
 
-function deleteCommentWithId(id) {
+function deleteComment(id) {
   const request = new Request('/comments?id=' + id, { method: 'DELETE' });
   fetch(request).then(response => fetchComments());
 }
