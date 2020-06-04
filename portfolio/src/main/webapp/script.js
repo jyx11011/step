@@ -91,7 +91,7 @@ function createElementForComment(comment) {
   contentElement.innerText = comment.content;
   const deleteButton = document.createElement('button');
   deleteButton.innerText = 'Delete';
-  deleteButton.addEventListener('click', () => deleteCommentWithId(comment.id));
+  deleteButton.addEventListener('click', () => deleteComment(comment.id));
   commentElement.append(contentElement, deleteButton);
   return commentElement;
 }
@@ -101,7 +101,7 @@ function deleteAllComments() {
   fetch(request).then(_ => fetchComments());
 }
 
-function deleteCommentWithId(id) {
+function deleteComment(id) {
   const request = new Request('/comments?id=' + id, { method: 'DELETE' });
   fetch(request).then(response => fetchComments());
 }
