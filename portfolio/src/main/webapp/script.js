@@ -161,3 +161,8 @@ function deleteComment(id) {
   const request = new Request('/comments?id=' + id, { method: 'DELETE' });
   fetch(request).then(response => fetchComments());
 }
+
+window.onload = () => {
+  fetchComments();
+  addRandomFact();
+}

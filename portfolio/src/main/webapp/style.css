@@ -17,13 +17,17 @@ body {
 }
 
 #gallery {
-  height: 650px;
-  overflow: scroll;
+  display: flex;
+  flex-wrap: nowrap;
+  height: 280px;
+  overflow-x: auto;
 }
 
 #gallery img {
-  height: auto;
-  width: 200px;
+  display: inline-block;
+  height: 250px;
+  margin: auto 2px;
+  width: auto;
 }
 
 #gallery img:hover {
@@ -31,9 +35,9 @@ body {
 }
 
 .sec-header {
-    background: #8eb8ce;
-    color: white;
-    text-align: center;
+  background: #8eb8ce;
+  color: white;
+  text-align: center;
 }
 
 .link {
@@ -59,15 +63,15 @@ body {
 }
 
 #fact-button {
-    background: whitesmoke;
-    border: 1px solid #8eb8ce;
-    color: #8eb8ce;
-    font: bold;
+  background: whitesmoke;
+  border: 1px solid #8eb8ce;
+  color: #8eb8ce;
+  font-weight: bold;
 }
 
 #fact-button:hover {
-    background: #8eb8ce;
-    color: whitesmoke;
+  background: #8eb8ce;
+  color: whitesmoke;
 }
 
 #fact-container {

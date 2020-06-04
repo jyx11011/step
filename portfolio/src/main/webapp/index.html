@@ -6,7 +6,7 @@
     <link rel="stylesheet" href="style.css">
     <script src="script.js"></script>
   </head>
-  <body onload="fetchComments()">
+  <body>
     <div id="content">
       <h1>My Portfolio - Jiang Yuxin</h1>
       <h3 class="sec-header">Introduction</h3>
@@ -69,12 +69,13 @@
             <button id="fact-button" onclick="addRandomFact()">Get a fact</button></p>
       <div id="fact-container"></div>
 
+      <h3 class="sec-header">Comment</h3>
       <form>
         <label for="comment-limit">Limit:</label>
         <input id="comment-limit" type="number" min="0" max="100">
         <br>
         <label for="username-filter">Filter by username:</label>
-        <input type="text" id="username-filter" placeholder="none">
+        <input type="text" id="username-filter" placeholder="none" maxlength="30">
         <br>
         <label for="comment-order">Sort by:</label>
         <select name="comment-order" id="comment-order">
