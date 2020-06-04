@@ -74,18 +74,18 @@ public class DataServlet extends HttpServlet {
 
   /** Returns comments fetched from datastore */
   private ArrayList<Comment> fetchComments(HttpServletRequest request) {
-    //Prepare datastore query
+    // Prepare datastore query
     Query query = new Query("Comment");
     PreparedQuery results = datastore.prepare(query);
     
-    //Set limit options
+    // Set limit options
     FetchOptions fetchOptions = FetchOptions.Builder.withDefaults();
     Optional<Integer> limit = getLimit(request);
     if (limit.isPresent()) {
       fetchOptions = FetchOptions.Builder.withLimit(limit.get());
     }
 
-    //Create comment list
+    // Create comment list
     ArrayList<Comment> comments = new ArrayList<>();
     for (Entity entity: results.asIterable(fetchOptions)) {
       String content = (String) entity.getProperty("content");
@@ -102,7 +102,7 @@ public class DataServlet extends HttpServlet {
       return Optional.empty();
     }
 
-    //Check that the string is a valid integer.
+    // Check that the string is a valid integer.
     String limitString = request.getParameter("limit");
     int limit = -1;
     try {
@@ -111,7 +111,7 @@ public class DataServlet extends HttpServlet {
       return Optional.empty();
     }
 
-    //Check that the number is non-negative
+    // Check that the number is non-negative
     if (limit < 0) {
       return Optional.empty();
     }
