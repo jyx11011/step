@@ -77,7 +77,7 @@ function fetchComments(limit = undefined, username = undefined) {
 }
 
 function getRequestParameter(limit, username) {
-  return 'limit=' + limit + (username != null ? '&username=' + username : '');
+  return 'limit=' + limit + (typeof username != 'undefined' ? '&username=' + username : '');
 }
 
 function fetchCommentsWithLimit() {
