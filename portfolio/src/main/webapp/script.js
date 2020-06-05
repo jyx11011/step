@@ -86,12 +86,22 @@ function resetComments() {
 }
 
 function createElementForComment(comment) {
-  const commentElement = document.createElement('p');
-  commentElement.innerText = comment;
+  const commentElement = document.createElement('div');
+  const contentElement = document.createElement('p');
+  contentElement.innerText = comment.content;
+  const deleteButton = document.createElement('button');
+  deleteButton.innerText = 'Delete';
+  deleteButton.addEventListener('click', () => deleteComment(comment.id));
+  commentElement.append(contentElement, deleteButton);
   return commentElement;
 }
 
 function deleteAllComments() {
-  const request = new Request('/delete-all-comments', {method: 'POST'});
+  const request = new Request('/comments', { method: 'DELETE' });
   fetch(request).then(_ => fetchComments());
+}
+
+function deleteComment(id) {
+  const request = new Request('/comments?id=' + id, { method: 'DELETE' });
+  fetch(request).then(response => fetchComments());
 }

@@ -21,7 +21,9 @@ import com.google.appengine.api.datastore.FetchOptions;
 import com.google.appengine.api.datastore.FetchOptions.Builder;
 import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.Query;
+import com.google.appengine.api.datastore.Query.FilterOperator;
 import com.google.gson.Gson;
+import com.google.sps.data.Comment;
 import java.io.IOException;
 import java.lang.Integer;
 import java.util.ArrayList;
@@ -39,7 +41,7 @@ public class DataServlet extends HttpServlet {
     
   @Override
   public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
-    ArrayList<String> comments = fetchComments(request);
+    ArrayList<Comment> comments = fetchComments(request);
     Gson gson = new Gson();
     String json = gson.toJson(comments);
 
@@ -49,33 +51,47 @@ public class DataServlet extends HttpServlet {
 
   @Override
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
-    String comment = request.getParameter("comment");
+    String commentContent = request.getParameter("comment");
+    Comment comment = new Comment(commentContent);
 
     Entity commentEntity = new Entity("Comment");
-    commentEntity.setProperty("content", comment);
+    commentEntity.setProperty("content", comment.getContent());
+    commentEntity.setProperty("id", comment.getIdString());
     datastore.put(commentEntity);
 
     response.sendRedirect("/index.html");
   }
 
+  @Override
+  public void doDelete(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    if (request.getParameterMap().containsKey("id")) {
+      String commentId = request.getParameter("id");
+      deleteComment(commentId);
+    } else {
+      deleteAllComments();
+    }
+  }
+
   /** Returns comments fetched from datastore */
-  private ArrayList<String> fetchComments(HttpServletRequest request) {
-    //Prepare datastore query
+  private ArrayList<Comment> fetchComments(HttpServletRequest request) {
+    // Prepare datastore query
     Query query = new Query("Comment");
     PreparedQuery results = datastore.prepare(query);
     
-    //Set limit options
+    // Set limit options
     FetchOptions fetchOptions = FetchOptions.Builder.withDefaults();
     Optional<Integer> limit = getLimit(request);
     if (limit.isPresent()) {
       fetchOptions = FetchOptions.Builder.withLimit(limit.get());
     }
 
-    //Create comment list
-    ArrayList<String> comments = new ArrayList<>();
+    // Create comment list
+    ArrayList<Comment> comments = new ArrayList<>();
     for (Entity entity: results.asIterable(fetchOptions)) {
       String content = (String) entity.getProperty("content");
-      comments.add(content);
+      String id = (String) entity.getProperty("id");
+      Comment comment = new Comment(id, content);
+      comments.add(comment);
     }
     return comments;
   }
@@ -86,7 +102,7 @@ public class DataServlet extends HttpServlet {
       return Optional.empty();
     }
 
-    //Check that the string is a valid integer.
+    // Check that the string is a valid integer.
     String limitString = request.getParameter("limit");
     int limit = -1;
     try {
@@ -95,10 +111,30 @@ public class DataServlet extends HttpServlet {
       return Optional.empty();
     }
 
-    //Check that the number is non-negative
+    // Check that the number is non-negative
     if (limit < 0) {
       return Optional.empty();
     }
     return Optional.of(limit);
+  }
+
+  /** Deletes all comments in datastore. */
+  private void deleteAllComments() {
+    Query query = new Query("Comment");
+    PreparedQuery results = datastore.prepare(query);
+    
+    for (Entity commentEntity: results.asIterable()) {
+      datastore.delete(commentEntity.getKey());
+    }
+  }
+
+  /** Deletes the comment with the given id. */
+  private void deleteComment(String id) {
+    Query query = new Query("Comment").addFilter("id", FilterOperator.EQUAL, id);
+    PreparedQuery results = datastore.prepare(query);
+
+    for (Entity entity: results.asIterable()) {
+      datastore.delete(entity.getKey());
+    }
   }
 }
