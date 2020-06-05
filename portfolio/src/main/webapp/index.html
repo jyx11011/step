@@ -70,33 +70,44 @@
       <div id="fact-container"></div>
 
       <h3 class="sec-header">Comment</h3>
-      <form>
-        <label for="comment-limit">Limit:</label>
-        <input id="comment-limit" type="number" min="0" max="100">
-        <br>
-        <label for="username-filter">Filter by username:</label>
-        <input type="text" id="username-filter" placeholder="none" maxlength="30">
-        <br>
-        <label for="comment-order">Sort by:</label>
-        <select name="comment-order" id="comment-order">
-          <option value="Newest" selected>Newest</option>
-          <option value="Oldest">Oldest</option>
-          <option value="User">User</option>
-        </select>
-        <br>
-        <button type="button" id="comment-form-btn" onclick="fetchCommentsWithUserInput()">Submit</button>
-        <button type="reset" onclick="resetComments()">Reset</button>
-      </form>
+      <form id="comments-setting">
+        <div id="comments-setting-inputs">
+          <div class="input-group">
+            <label for="comment-limit">Limit:</label>
+            <input id="comment-limit" value="20" type="number" min="1" max="100">
+          </div>
 
-      <br>
-      <button type="button" onclick="deleteAllComments()">Delete All</button>
-    
+          <div class="input-group">
+            <label for="username-filter">Filter by username:</label>
+            <input type="text" id="username-filter" placeholder="none" maxlength="30">
+          </div>
+
+          <div class="input-group">
+            <label for="comment-order">Sort by:</label>
+            <select name="comment-order" id="comment-order">
+              <option value="Newest" selected>Newest</option>
+              <option value="Oldest">Oldest</option>
+              <option value="User">User</option>
+            </select>
+          </div>
+        </div>
+        <div id="comments-setting-btns">
+          <button type="button" id="comment-setting-submit" onclick="fetchCommentsWithUserInput()">Submit</button>
+          <button type="reset" onclick="resetComments()">Reset</button>
+        </div>
+      </form>
+      <div id="comments-editing-btn">
+        <button type="button" id="delete-all-btn" onclick="deleteAllComments()">Delete All</button>
+      </div>
+      
       <div id="comments-container"></div>
-      <form action="/comments" method="POST">
-        <label>Username</label>
-        <input name="username" placeholder="username" required>
-        <textarea name="comment" placeholder="Comment" rows="3" cols="80"></textarea>
-        <button type="submit">Submit</button>
+      <form action="/comments" method="POST" id="comment-form">
+        <div>
+          <label for="username-input">Username</label>
+          <input id="username-input" name="username" placeholder="username" required>
+        </div>
+        <textarea id="comment-text" name="comment" placeholder="Comment" rows="3" cols="80"></textarea>
+        <button type="submit" id="new-comment-btn">Submit</button>
       </form>
     </div>
   </body>

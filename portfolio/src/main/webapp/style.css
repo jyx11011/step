@@ -100,3 +100,106 @@ body {
   background: #152568;
   color: antiquewhite;
 }
+
+#comments-setting-inputs {
+  display: flex;
+  font: 14px Arial, sans-serif;
+  justify-content: space-between;
+  margin: 5px;
+}
+
+#comments-setting-inputs .input-group {
+  display: inline;
+}
+
+#comments-setting-btns {
+  margin: 5px;
+}
+
+#comments-setting-btns button,
+#new-comment-btn {
+  background: #8eb8ce;
+  border: 1px solid #8eb8ce;
+  color: whitesmoke;
+  display: inline-block;
+  font-weight: bold;
+  margin: 3px;
+}
+
+#comments-setting-btns button:hover,
+#new-comment-btn:hover {
+  background: #70a4c0;
+}
+
+#delete-all-btn,
+.delete-comment {
+  background: whitesmoke;
+  border: 1px solid #f16969;
+  color: #f16969;
+  display: inline-block;
+  font: bold 15px;
+}
+
+#delete-all-btn:hover,
+.delete-comment:hover {
+  background: #f16969;
+  color: whitesmoke;
+}
+
+#comments-editing-btn {
+  display: flex;
+  justify-content: flex-end;
+  margin: 5px;
+}
+
+#comments-container {
+  margin: 20px 0;
+}
+
+.comment {
+  background: #b4d5e75e;
+  margin: 5px 5px 20px 5px;
+  padding: 10px 10px;
+}
+
+.comment-header {
+  border-color: #8eb8ce;
+  border-style: solid;
+  border-width: 0 0 2px 0;
+  color: #1a1a63;
+  display: flex;
+  justify-content: space-between;
+  padding: 2px 5px;
+}
+
+.username {
+  display: inline-block;
+  font: 16px Arial, sans-serif;
+}
+
+.timestamp {
+  display: inline-block;
+  font: 12px Arial, sans-serif;
+}
+
+.content {
+  margin: 5px;
+  font: 17px;
+}
+
+.comment-button {
+  display: flex;
+  justify-content: flex-end;
+}
+
+#comment-form {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  margin: 5px;
+  padding: 5px;
+}
+
+#comment-text {
+  margin: 5px 0;
+}

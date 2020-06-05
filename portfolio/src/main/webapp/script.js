@@ -139,16 +139,32 @@ function resetComments() {
 
 function createElementForComment(comment) {
   const commentElement = document.createElement('div');
-  const userNameElement = document.createElement('p');
-  userNameElement.innerText = 'username: ' + comment.user;
-  const timestampElement = document.createElement('p');
+  commentElement.className = 'comment'
+  
+  const header = document.createElement('div');
+  header.className = 'comment-header';
+  const usernameElement = document.createElement('span');
+  usernameElement.innerText = comment.user;
+  usernameElement.className = 'username';
+  
+  const timestampElement = document.createElement('span');
   timestampElement.innerText = (new Date(parseInt(comment.timestamp))).toLocaleString();
-  const contentElement = document.createElement('p');
+  timestampElement.className = 'timestamp';
+  header.append(usernameElement, timestampElement)
+  
+  const contentElement = document.createElement('div');
   contentElement.innerText = comment.content;
+  contentElement.className = 'content';
+  
+  const commentButtonElement = document.createElement('div');
+  commentButtonElement.className = 'comment-button';
   const deleteButton = document.createElement('button');
   deleteButton.innerText = 'Delete';
   deleteButton.addEventListener('click', () => deleteComment(comment.id));
-  commentElement.append(userNameElement, timestampElement, contentElement, deleteButton);
+  deleteButton.className = 'delete-comment';
+  commentButtonElement.append(deleteButton);
+
+  commentElement.append(header, contentElement, commentButtonElement);
   return commentElement;
 }
 
