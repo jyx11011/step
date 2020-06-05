@@ -70,13 +70,21 @@
       <div id="fact-container"></div>
 
       <form>
-        <input id="comment-limit" type="number" min="0" max="100"></input>
-        <button type="button" id="comment-limit" onclick="fetchCommentsWithLimit()">Submit</button>
+        <input id="comment-limit" type="number" min="0" max="100">
+        <button type="button" id="comment-limit-btn" onclick="fetchCommentsWithLimit()">Submit</button>
         <button type="reset" onclick="resetComments()">Reset</button>
       </form>
       <button type="button" onclick="deleteAllComments()">Delete All</button>
+      
+      <br>
+      <label>Filter by username</label>
+      <input type="text" id="username-filter">
+      <button type="button" onclick="filterCommentsByUsername()">Go</button>
+      
       <div id="comments-container"></div>
       <form action="/comments" method="POST">
+        <label>Username</label>
+        <input name="username" placeholder="username" required>
         <textarea name="comment" placeholder="Comment" rows="3" cols="80"></textarea>
         <button type="submit">Submit</button>
       </form>

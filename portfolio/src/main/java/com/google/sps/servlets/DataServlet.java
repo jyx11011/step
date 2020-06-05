@@ -22,6 +22,7 @@ import com.google.appengine.api.datastore.FetchOptions.Builder;
 import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.Query;
 import com.google.appengine.api.datastore.Query.FilterOperator;
+import com.google.appengine.api.datastore.Query.SortDirection;
 import com.google.gson.Gson;
 import com.google.sps.data.Comment;
 import java.io.IOException;
@@ -51,12 +52,11 @@ public class DataServlet extends HttpServlet {
 
   @Override
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    String user = request.getParameter("username");
     String commentContent = request.getParameter("comment");
-    Comment comment = new Comment(commentContent);
-
-    Entity commentEntity = new Entity("Comment");
-    commentEntity.setProperty("content", comment.getContent());
-    commentEntity.setProperty("id", comment.getIdString());
+    
+    Comment comment = new Comment(commentContent, user);
+    Entity commentEntity = transformCommentToEntity(comment);
     datastore.put(commentEntity);
 
     response.sendRedirect("/index.html");
@@ -76,24 +76,57 @@ public class DataServlet extends HttpServlet {
   private ArrayList<Comment> fetchComments(HttpServletRequest request) {
     // Prepare datastore query
     Query query = new Query("Comment");
-    PreparedQuery results = datastore.prepare(query);
-    
+
     // Set limit options
     FetchOptions fetchOptions = FetchOptions.Builder.withDefaults();
     Optional<Integer> limit = getLimit(request);
     if (limit.isPresent()) {
       fetchOptions = FetchOptions.Builder.withLimit(limit.get());
     }
+    
+    // Set username filter
+    Optional<String> username = getUsername(request);
+    if (username.isPresent()) {
+      query.addFilter("user", FilterOperator.EQUAL, username.get());
+    }
 
     // Create comment list
+    PreparedQuery results = datastore.prepare(query);
+
     ArrayList<Comment> comments = new ArrayList<>();
     for (Entity entity: results.asIterable(fetchOptions)) {
-      String content = (String) entity.getProperty("content");
-      String id = (String) entity.getProperty("id");
-      Comment comment = new Comment(id, content);
+      Comment comment = transformEntityToComment(entity);
       comments.add(comment);
     }
     return comments;
+  }
+
+  /** Returns a Comment object constructed from the given entity. */
+  private Comment transformEntityToComment(Entity entity) {
+    String content = (String) entity.getProperty("content");
+    String id = (String) entity.getProperty("id");
+    String user = (String) entity.getProperty("user");
+    long timestamp = (long) entity.getProperty("timestamp");
+    Comment comment = new Comment(id, content, user, timestamp);
+    return comment;
+  }
+
+  /** Returns a Comment entity constructed from the given Comment object. */
+  private Entity transformCommentToEntity(Comment comment) {
+    Entity commentEntity = new Entity("Comment");
+    commentEntity.setProperty("content", comment.getContent());
+    commentEntity.setProperty("id", comment.getIdString());
+    commentEntity.setProperty("user", comment.getUser());
+    commentEntity.setProperty("timestamp", comment.getTimestamp());
+    return commentEntity;
+  }
+
+  /** Returns the username requested by the client if it exists. */
+  private Optional<String> getUsername(HttpServletRequest request) {
+    if (request.getParameter("username") == null) {
+      return Optional.empty();
+    }
+    return Optional.of(request.getParameter("username"));
   }
 
   /** Returns the limit of comments if the limit a non-negative interger. Otherwise, returns empty. */

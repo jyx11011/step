@@ -63,8 +63,8 @@ function getCommentLimit() {
 /**
  * Fetches comments with limit from server.
  */
-function fetchComments(limit = '') {
-  fetch('/comments?limit=' + limit)
+function fetchComments(limit = undefined, username = undefined) {
+  fetch('/comments?' + getRequestParameter(limit, username))
     .then(response => response.json())
     .then(json => {
       const commentsContainer = document.getElementById('comments-container');
@@ -76,8 +76,12 @@ function fetchComments(limit = '') {
     });
 }
 
+function getRequestParameter(limit, username) {
+  return 'limit=' + limit + (typeof username != 'undefined' ? '&username=' + username : '');
+}
+
 function fetchCommentsWithLimit() {
-  fetchComments(getCommentLimit());
+  fetchComments(getCommentLimit(), undefined);
   return false;
 }
 
@@ -87,12 +91,16 @@ function resetComments() {
 
 function createElementForComment(comment) {
   const commentElement = document.createElement('div');
+  const userNameElement = document.createElement('p');
+  userNameElement.innerText = 'username: ' + comment.user;
+  const timestampElement = document.createElement('p');
+  timestampElement.innerText = (new Date(parseInt(comment.timestamp))).toLocaleString();
   const contentElement = document.createElement('p');
   contentElement.innerText = comment.content;
   const deleteButton = document.createElement('button');
   deleteButton.innerText = 'Delete';
   deleteButton.addEventListener('click', () => deleteComment(comment.id));
-  commentElement.append(contentElement, deleteButton);
+  commentElement.append(userNameElement, contentElement, deleteButton);
   return commentElement;
 }
 
@@ -104,4 +112,9 @@ function deleteAllComments() {
 function deleteComment(id) {
   const request = new Request('/comments?id=' + id, { method: 'DELETE' });
   fetch(request).then(response => fetchComments());
+}
+
+function filterCommentsByUsername() {
+  const username = document.getElementById('username-filter').value;
+  fetchComments(undefined, username);
 }
