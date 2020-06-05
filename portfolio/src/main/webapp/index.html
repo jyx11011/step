@@ -70,17 +70,26 @@
       <div id="fact-container"></div>
 
       <form>
+        <label for="comment-limit">Limit:</label>
         <input id="comment-limit" type="number" min="0" max="100">
-        <button type="button" id="comment-limit-btn" onclick="fetchCommentsWithLimit()">Submit</button>
+        <br>
+        <label for="username-filter">Filter by username:</label>
+        <input type="text" id="username-filter" placeholder="none">
+        <br>
+        <label for="comment-order">Sort by:</label>
+        <select name="comment-order" id="comment-order">
+          <option value="Newest" selected>Newest</option>
+          <option value="Oldest">Oldest</option>
+          <option value="User">User</option>
+        </select>
+        <br>
+        <button type="button" id="comment-form-btn" onclick="fetchCommentsWithUserInput()">Submit</button>
         <button type="reset" onclick="resetComments()">Reset</button>
       </form>
-      <button type="button" onclick="deleteAllComments()">Delete All</button>
-      
+
       <br>
-      <label>Filter by username</label>
-      <input type="text" id="username-filter">
-      <button type="button" onclick="filterCommentsByUsername()">Go</button>
-      
+      <button type="button" onclick="deleteAllComments()">Delete All</button>
+    
       <div id="comments-container"></div>
       <form action="/comments" method="POST">
         <label>Username</label>

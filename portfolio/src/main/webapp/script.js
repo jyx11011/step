@@ -56,15 +56,43 @@ function shuffleImagesInGallery() {
  * Returns the comment limit value.
  */
 function getCommentLimit() {
-  const limitInput = document.getElementById('comment-limit');
-  return limitInput.value
+  const limitInput = document.getElementById('comment-limit').value;
+  return limitInput ? limitInput : undefined;
 }
 
 /**
- * Fetches comments with limit from server.
+ * Returns the comments username filter.
  */
-function fetchComments(limit = undefined, username = undefined) {
-  fetch('/comments?' + getRequestParameter(limit, username))
+function getUsernameFilter() {
+  const username = document.getElementById('username-filter').value;
+  return username ? username : undefined;
+}
+
+/**
+ * Returns the comments sort order.
+ */
+function getCommentsSortOrder() {
+  const order = document.getElementById('comment-order').value;
+  return order;
+}
+
+/**
+ * Fetches comments that satisfy user's requirements.
+ */
+function fetchCommentsWithUserInput() {
+  const limit = getCommentLimit();
+  const usernameFilter = getUsernameFilter();
+  const sortOrder = getCommentsSortOrder();
+  const map = new Map([['limit', limit], ['username', usernameFilter], ['order', sortOrder]]);
+  fetchComments(map);
+  return false;
+}
+
+/**
+ * Fetches comments with the given requirements.
+ */
+function fetchComments(requirements) {
+  fetch('/comments' + getRequestParameter(requirements))
     .then(response => response.json())
     .then(json => {
       const commentsContainer = document.getElementById('comments-container');
@@ -76,13 +104,33 @@ function fetchComments(limit = undefined, username = undefined) {
     });
 }
 
-function getRequestParameter(limit, username) {
-  return 'limit=' + limit + (typeof username != 'undefined' ? '&username=' + username : '');
+/**
+ * Returns a request parameter string for the given key,value paris.
+ */
+function getRequestParameter(map) {
+  if (isUndefined(map)) {
+    return '';
+  }
+
+  let results = '';
+  let first = true;
+  for(const [key, value] of map.entries()) {
+    if (isUndefined(value)) {
+      continue;
+    }
+    if (first) {
+      results = '?';
+      first = false;
+    } else {
+      results += '&';
+    }
+    results += key + '=' + value;
+  }
+  return results;
 }
 
-function fetchCommentsWithLimit() {
-  fetchComments(getCommentLimit(), undefined);
-  return false;
+function isUndefined(value) {
+  return typeof value == 'undefined'
 }
 
 function resetComments() {
@@ -100,7 +148,7 @@ function createElementForComment(comment) {
   const deleteButton = document.createElement('button');
   deleteButton.innerText = 'Delete';
   deleteButton.addEventListener('click', () => deleteComment(comment.id));
-  commentElement.append(userNameElement, contentElement, deleteButton);
+  commentElement.append(userNameElement, timestampElement, contentElement, deleteButton);
   return commentElement;
 }
 
@@ -112,9 +160,4 @@ function deleteAllComments() {
 function deleteComment(id) {
   const request = new Request('/comments?id=' + id, { method: 'DELETE' });
   fetch(request).then(response => fetchComments());
-}
-
-function filterCommentsByUsername() {
-  const username = document.getElementById('username-filter').value;
-  fetchComments(undefined, username);
 }

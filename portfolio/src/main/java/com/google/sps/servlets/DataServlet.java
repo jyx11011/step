@@ -90,6 +90,10 @@ public class DataServlet extends HttpServlet {
       query.addFilter("user", FilterOperator.EQUAL, username.get());
     }
 
+    // Add sort order
+    SortOrder sortOrder = getSortOrder(request);
+    query.addSort(sortOrder.property, sortOrder.sortDirection);
+
     // Create comment list
     PreparedQuery results = datastore.prepare(query);
 
@@ -127,6 +131,26 @@ public class DataServlet extends HttpServlet {
       return Optional.empty();
     }
     return Optional.of(request.getParameter("username"));
+  }
+
+  /** 
+   * Returns the order for sorting comments requested by the client if it exists.
+   * Otherwise, returns sorting by newest by default.
+   */
+  private SortOrder getSortOrder(HttpServletRequest request) {
+    if (request.getParameter("order") == null) {
+      return new SortOrder("timestamp", SortDirection.DESCENDING);
+    }
+    switch (request.getParameter("order").toLowerCase()) {
+      case "newest":
+        return new SortOrder("timestamp", SortDirection.DESCENDING);
+      case "oldest":
+        return new SortOrder("timestamp", SortDirection.ASCENDING);
+      case "user":
+        return new SortOrder("user", SortDirection.ASCENDING);
+      default:
+        return new SortOrder("timestamp", SortDirection.DESCENDING);
+    }
   }
 
   /** Returns the limit of comments if the limit a non-negative interger. Otherwise, returns empty. */
@@ -168,6 +192,16 @@ public class DataServlet extends HttpServlet {
 
     for (Entity entity: results.asIterable()) {
       datastore.delete(entity.getKey());
+    }
+  }
+
+  private class SortOrder {
+    String property;
+    SortDirection sortDirection;
+
+    SortOrder(String property, SortDirection sortDirection) {
+      this.property = property;
+      this.sortDirection = sortDirection;
     }
   }
 }
