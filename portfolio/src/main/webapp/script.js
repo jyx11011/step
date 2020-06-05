@@ -113,6 +113,13 @@ function fetchComments(requirements, cleanComments = true) {
       if (cleanComments) {
         commentsContainer.innerHTML = '';
       }
+
+      if (comments.length == 0) {
+        hideLoadMoreButton();
+        return;
+      }
+
+      showLoadMoreButton();
       for (const comment of comments) {
         const commentElement = createElementForComment(comment);
         commentsContainer.appendChild(commentElement);
@@ -122,8 +129,18 @@ function fetchComments(requirements, cleanComments = true) {
     });
 }
 
+function hideLoadMoreButton() {
+  const loadMoreButton = document.getElementById('load-more-btn');
+  loadMoreButton.style.display = 'none';
+}
+
+function showLoadMoreButton() {
+  const loadMoreButton = document.getElementById('load-more-btn');
+  loadMoreButton.style.display = 'inline-block';
+}
+
 /**
- * Returns a request parameter string for the given key,value paris.
+ * Returns a request string for the given key,value paris.
  */
 function getRequestParameter(map) {
   if (isUndefined(map)) {

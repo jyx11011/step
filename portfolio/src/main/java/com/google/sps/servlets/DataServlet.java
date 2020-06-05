@@ -236,7 +236,9 @@ public class DataServlet extends HttpServlet {
     ArrayList<Comment> comments;
     String cursor;
 
-    CommentsResult() { }
+    CommentsResult() {
+      this.comments = new ArrayList<Comment>();
+    }
 
     CommentsResult(ArrayList<Comment> comments, String cursor) {
       this.comments = comments;

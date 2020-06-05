@@ -102,7 +102,9 @@
       </div>
       
       <div id="comments-container"></div>
-      <button id="load-more" onclick="fetchNextPageOfComments()">Load more...</button>
+      <div id="load-more">
+        <button id="load-more-btn" onclick="fetchNextPageOfComments()">Load more...</button>
+      </div>
       <form action="/comments" method="POST" id="comment-form">
         <div>
           <label for="username-input">Username</label>

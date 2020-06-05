@@ -205,3 +205,22 @@ body {
 #comment-text {
   margin: 5px 0;
 }
+
+#load-more {
+  display: flex;
+  justify-content: center;
+}
+
+#load-more-btn {
+  background: whitesmoke;
+  border: 1px solid whitesmoke;
+  color:  #70a4c0;
+  display: inline-block;
+  font: bold;
+}
+
+#load-more-btn:hover {
+  border: 1px solid #70a4c0;
+  display: inline-block;
+  box-shadow: 3px 3px #c1cacfc2;
+}
