@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+let commentsStart = null;
+
 /**
  * Adds a random fact to the page.
  */
@@ -89,18 +91,34 @@ function fetchCommentsWithUserInput() {
 }
 
 /**
+ * Fetches next batch of comments.
+ */
+function fetchNextPageOfComments() {
+  const limit = getCommentLimit();
+  const usernameFilter = getUsernameFilter();
+  const sortOrder = getCommentsSortOrder();
+  const map = new Map([['limit', limit], ['username', usernameFilter], ['order', sortOrder], ['start', commentsStart]]);
+  fetchComments(map, false);
+}
+
+/**
  * Fetches comments with the given requirements.
  */
-function fetchComments(requirements) {
+function fetchComments(requirements, cleanComments = true) {
   fetch('/comments' + getRequestParameter(requirements))
     .then(response => response.json())
     .then(json => {
+      const comments = json.comments;
       const commentsContainer = document.getElementById('comments-container');
-      commentsContainer.innerHTML = '';
-      for (const comment of json) {
+      if (cleanComments) {
+        commentsContainer.innerHTML = '';
+      }
+      for (const comment of comments) {
         const commentElement = createElementForComment(comment);
         commentsContainer.appendChild(commentElement);
       }
+
+      commentsStart = json.cursor;
     });
 }
 

@@ -62,14 +62,16 @@ body {
   font: 17px;
 }
 
-#fact-button {
+#fact-button,
+#shuffle-images {
   background: whitesmoke;
   border: 1px solid #8eb8ce;
   color: #8eb8ce;
   font-weight: bold;
 }
 
-#fact-button:hover {
+#fact-button:hover,
+#shuffle-images:hover {
   background: #8eb8ce;
   color: whitesmoke;
 }
