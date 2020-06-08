@@ -121,13 +121,11 @@ function fetchComments(requirements, removeExisting = true) {
       }
 
       if (json.isEndOfComments) {
-        showNoMoreComments();
-        hideLoadMoreButton();
+        toggleLoadMoreButton(false);
         return;
       }
 
-      showLoadMoreButton();
-      hideNoMoreComments();
+      toggleLoadMoreButton(true);
       for (const comment of comments) {
         const commentElement = createElementForComment(comment);
         commentsContainer.appendChild(commentElement);
@@ -137,24 +135,16 @@ function fetchComments(requirements, removeExisting = true) {
     }).catch(error => console.log(error));
 }
 
-function showNoMoreComments() {
+function toggleLoadMoreButton(visible) {
   const noMoreCommentsContainer = document.getElementById('no-more-comments');
-  noMoreCommentsContainer.className = 'appear';
-}
-
-function hideNoMoreComments() {
-  const noMoreCommentsContainer = document.getElementById('no-more-comments');
-  noMoreCommentsContainer.className = 'hide';
-}
-
-function hideLoadMoreButton() {
   const loadMoreButton = document.getElementById('load-more-btn');
-  loadMoreButton.style.display = 'none';
-}
-
-function showLoadMoreButton() {
-  const loadMoreButton = document.getElementById('load-more-btn');
-  loadMoreButton.style.display = 'inline-block';
+  if (visible) {
+    loadMoreButton.style.display = 'inline-block';
+    noMoreCommentsContainer.className = 'hide';
+  } else {
+    loadMoreButton.style.display = 'none';
+    noMoreCommentsContainer.className = 'appear';
+  }
 }
 
 /**

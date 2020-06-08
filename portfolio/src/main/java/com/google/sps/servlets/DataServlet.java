@@ -119,11 +119,10 @@ public class DataServlet extends HttpServlet {
       comments.add(comment);
     }
 
-    if (comments.size() == 0) {
-      return new CommentsResult();
-    }
-    
     String cursorString = results.getCursor().toWebSafeString();
+    if (comments.size() == 0) {
+      return new CommentsResult(comments, cursorString, true);
+    }
     return new CommentsResult(comments, cursorString);
   }
 
@@ -241,16 +240,16 @@ public class DataServlet extends HttpServlet {
   private class CommentsResult {
     ArrayList<Comment> comments;
     String cursor;
-    Boolean isEndOfComments = false;
+    boolean isEndOfComments;
 
-    CommentsResult() {
-      this.comments = new ArrayList<Comment>();
-      isEndOfComments = true;
+    CommentsResult(ArrayList<Comment> comments, String cursor, boolean isEndOfComments) {
+      this.comments = comments;
+      this.cursor = cursor;
+      this.isEndOfComments = isEndOfComments;
     }
 
     CommentsResult(ArrayList<Comment> comments, String cursor) {
-      this.comments = comments;
-      this.cursor = cursor;
+      this(comments, cursor, false);
     }
   }
 }
