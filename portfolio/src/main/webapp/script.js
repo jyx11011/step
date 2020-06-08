@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-let commentsStart = null;
+let cursor = null;
 
 /**
  * Adds a random fact to the page.
@@ -85,7 +85,8 @@ function fetchCommentsWithUserInput() {
   const limit = getCommentLimit();
   const usernameFilter = getUsernameFilter();
   const sortOrder = getCommentsSortOrder();
-  const map = new Map([['limit', limit], ['username', usernameFilter], ['order', sortOrder]]);
+  const map = new Map([
+      ['limit', limit], ['username', usernameFilter], ['order', sortOrder]]);
   fetchComments(map);
   return false;
 }
@@ -97,36 +98,53 @@ function fetchNextPageOfComments() {
   const limit = getCommentLimit();
   const usernameFilter = getUsernameFilter();
   const sortOrder = getCommentsSortOrder();
-  const map = new Map([['limit', limit], ['username', usernameFilter], ['order', sortOrder], ['start', commentsStart]]);
+  const map = new Map([
+      ['limit', limit], ['username', usernameFilter], ['order', sortOrder], ['start', cursor]]);
   fetchComments(map, false);
 }
 
 /**
  * Fetches comments with the given requirements.
  */
-function fetchComments(requirements, cleanComments = true) {
+function fetchComments(requirements, removeExisting = true) {
   fetch('/comments' + getRequestParameter(requirements))
-    .then(response => response.json())
-    .then(json => {
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(response.statusText);
+      }
+      return response.json()
+    }).then(json => {
       const comments = json.comments;
       const commentsContainer = document.getElementById('comments-container');
-      if (cleanComments) {
+      if (removeExisting) {
         commentsContainer.innerHTML = '';
       }
 
-      if (comments.length == 0) {
+      if (json.isEndOfComments) {
+        showNoMoreComments();
         hideLoadMoreButton();
         return;
       }
 
       showLoadMoreButton();
+      hideNoMoreComments();
       for (const comment of comments) {
         const commentElement = createElementForComment(comment);
         commentsContainer.appendChild(commentElement);
       }
 
-      commentsStart = json.cursor;
-    });
+      cursor = json.cursor;
+    }).catch(error => console.log(error));
+}
+
+function showNoMoreComments() {
+  const noMoreCommentsContainer = document.getElementById('no-more-comments');
+  noMoreCommentsContainer.className = 'appear';
+}
+
+function hideNoMoreComments() {
+  const noMoreCommentsContainer = document.getElementById('no-more-comments');
+  noMoreCommentsContainer.className = 'hide';
 }
 
 function hideLoadMoreButton() {

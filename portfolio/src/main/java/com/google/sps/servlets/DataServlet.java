@@ -44,7 +44,13 @@ public class DataServlet extends HttpServlet {
     
   @Override
   public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
-    CommentsResult commentsResult = fetchComments(request);
+    CommentsResult commentsResult;
+    try {
+      commentsResult = fetchComments(request);
+    } catch(IllegalArgumentException e) {
+      response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+      return;
+    }
     Gson gson = new Gson();
     String json = gson.toJson(commentsResult);
 
@@ -75,7 +81,7 @@ public class DataServlet extends HttpServlet {
   }
 
   /** Returns comments fetched from datastore */
-  private CommentsResult fetchComments(HttpServletRequest request) {
+  private CommentsResult fetchComments(HttpServletRequest request) throws IllegalArgumentException {
     // Prepare datastore query
     Query query = new Query("Comment");
 
@@ -105,16 +111,16 @@ public class DataServlet extends HttpServlet {
     // Create comment list
     PreparedQuery preparedQuery = datastore.prepare(query);
 
-    QueryResultList<Entity> results;
-    try {
-      results = preparedQuery.asQueryResultList(fetchOptions);
-    } catch(IllegalArgumentException e) {
-      return new CommentsResult();
-    }
+    QueryResultList<Entity> results = preparedQuery.asQueryResultList(fetchOptions);
+
     ArrayList<Comment> comments = new ArrayList<>();
     for (Entity entity: results) {
       Comment comment = transformEntityToComment(entity);
       comments.add(comment);
+    }
+
+    if (comments.size() == 0) {
+      return new CommentsResult();
     }
     
     String cursorString = results.getCursor().toWebSafeString();
@@ -235,9 +241,11 @@ public class DataServlet extends HttpServlet {
   private class CommentsResult {
     ArrayList<Comment> comments;
     String cursor;
+    Boolean isEndOfComments = false;
 
     CommentsResult() {
       this.comments = new ArrayList<Comment>();
+      isEndOfComments = true;
     }
 
     CommentsResult(ArrayList<Comment> comments, String cursor) {

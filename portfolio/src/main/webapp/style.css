@@ -224,3 +224,11 @@ body {
   display: inline-block;
   box-shadow: 3px 3px #c1cacfc2;
 }
+
+#no-more-comments.hide {
+  opacity: 0;
+}
+
+#no-more-comments.appear {
+  opacity: 1;
+}
