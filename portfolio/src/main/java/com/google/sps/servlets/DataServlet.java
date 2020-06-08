@@ -25,6 +25,8 @@ import com.google.appengine.api.datastore.Query;
 import com.google.appengine.api.datastore.Query.FilterOperator;
 import com.google.appengine.api.datastore.QueryResultList;
 import com.google.appengine.api.datastore.Query.SortDirection;
+import com.google.appengine.api.users.UserService;
+import com.google.appengine.api.users.UserServiceFactory;
 import com.google.gson.Gson;
 import com.google.sps.data.Comment;
 import java.io.IOException;
@@ -60,8 +62,18 @@ public class DataServlet extends HttpServlet {
 
   @Override
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
-    String user = request.getParameter("username");
     String commentContent = request.getParameter("comment");
+
+    UserService userService = UserServiceFactory.getUserService();
+    String user;
+    if (userService.isUserLoggedIn()) {
+      user = userService.getCurrentUser().getEmail();
+    } else {
+      String urlToRedirectToAfterUserLogsIn = "/";
+      String loginUrl = userService.createLoginURL(urlToRedirectToAfterUserLogsIn);
+      response.sendRedirect(loginUrl);
+      return;
+    }
     
     Comment comment = new Comment(commentContent, user);
     Entity commentEntity = transformCommentToEntity(comment);
