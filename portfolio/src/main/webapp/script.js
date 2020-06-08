@@ -240,8 +240,10 @@ function configureCommentForm() {
   .then(loginStatus => {
     if (loginStatus.isLoggedIn) {
       showCommentForm(loginStatus);
+      showNicknameForm();
     } else {
       hideCommentForm(loginStatus);
+      hideNicknameForm();
     }
   })
 }
@@ -261,11 +263,21 @@ function showCommentForm(loginStatus) {
   const logoutContainer = document.getElementById('logout-container');
   logoutContainer.hidden = false;
   const username = document.getElementById('username');
-  username.innerText = loginStatus.userEmail;
+  username.innerText = loginStatus.nickname ? loginStatus.nickname : loginStatus.userEmail;
   const logoutLink = document.getElementById('logout-link');
   logoutLink.href = loginStatus.logoutUrl;
   const commentForm = document.getElementById('comment-form');
   commentForm.className = '';
+}
+
+function showNicknameForm() {
+  const nicknameForm = document.getElementById('nickname-form');
+  nicknameForm.hidden = false;
+}
+
+function hideNicknameForm() {
+  const nicknameForm = document.getElementById('nickname-form');
+  nicknameForm.hidden = true;
 }
 
 window.onload = () => {

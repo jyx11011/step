@@ -65,16 +65,16 @@ public class DataServlet extends HttpServlet {
     String commentContent = request.getParameter("comment");
 
     UserService userService = UserServiceFactory.getUserService();
-    String user;
-    if (userService.isUserLoggedIn()) {
-      user = userService.getCurrentUser().getEmail();
-    } else {
+    if (!userService.isUserLoggedIn()) {
       String urlToRedirectToAfterUserLogsIn = "/";
       String loginUrl = userService.createLoginURL(urlToRedirectToAfterUserLogsIn);
       response.sendRedirect(loginUrl);
       return;
     }
     
+    String id = userService.getCurrentUser().getUserId();
+    String user = getNicknameOfUser(id).orElse(userService.getCurrentUser().getEmail());
+
     Comment comment = new Comment(commentContent, user);
     Entity commentEntity = transformCommentToEntity(comment);
     datastore.put(commentEntity);
@@ -238,6 +238,20 @@ public class DataServlet extends HttpServlet {
     for (Entity entity: results.asIterable()) {
       datastore.delete(entity.getKey());
     }
+  }
+
+  /** Returns the nickname of the user with given id if it exists. */
+  private Optional<String> getNicknameOfUser(String id) {
+    DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+    Query query = new Query("User")
+        .setFilter(new Query.FilterPredicate("id", Query.FilterOperator.EQUAL, id));
+    PreparedQuery results = datastore.prepare(query);
+    Entity entity = results.asSingleEntity();
+    if (entity == null) {
+      return Optional.empty();
+    }
+    String nickname = (String) entity.getProperty("nickname");
+    return Optional.of(nickname);
   }
 
   private class SortOrder {
