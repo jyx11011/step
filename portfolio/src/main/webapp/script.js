@@ -197,7 +197,7 @@ function createElementForComment(comment) {
   const header = document.createElement('div');
   header.className = 'comment-header';
   const usernameElement = document.createElement('span');
-  usernameElement.innerText = comment.user;
+  usernameElement.innerText = comment.username;
   usernameElement.className = 'username';
   
   const timestampElement = document.createElement('span');

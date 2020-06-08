@@ -29,6 +29,7 @@ import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
 import com.google.gson.Gson;
 import com.google.sps.data.Comment;
+import com.google.sps.servlets.utils.UserInfoHelper;
 import java.io.IOException;
 import java.lang.Integer;
 import java.util.ArrayList;
@@ -72,10 +73,10 @@ public class DataServlet extends HttpServlet {
       return;
     }
     
-    String id = userService.getCurrentUser().getUserId();
-    String user = getNicknameOfUser(id).orElse(userService.getCurrentUser().getEmail());
+    String userId = userService.getCurrentUser().getUserId();
+    String userEmail = userService.getCurrentUser().getEmail();
 
-    Comment comment = new Comment(commentContent, user);
+    Comment comment = new Comment(commentContent, userId, userEmail);
     Entity commentEntity = transformCommentToEntity(comment);
     datastore.put(commentEntity);
 
@@ -113,7 +114,7 @@ public class DataServlet extends HttpServlet {
     // Set username filter
     Optional<String> username = getUsername(request);
     if (username.isPresent()) {
-      query.addFilter("user", FilterOperator.EQUAL, username.get());
+      query.addFilter("userEmail", FilterOperator.EQUAL, username.get());
     }
 
     // Add sort order
@@ -143,9 +144,11 @@ public class DataServlet extends HttpServlet {
   private Comment transformEntityToComment(Entity entity) {
     String content = (String) entity.getProperty("content");
     String id = (String) entity.getProperty("id");
-    String user = (String) entity.getProperty("user");
+    String userId = (String) entity.getProperty("userId");
+    String userEmail = (String) entity.getProperty("userEmail");
+    String username = UserInfoHelper.getNicknameOfUser(userId).orElse(userEmail);
     long timestamp = (long) entity.getProperty("timestamp");
-    Comment comment = new Comment(id, content, user, timestamp);
+    Comment comment = new Comment(id, content, userId, username, timestamp);
     return comment;
   }
 
@@ -154,7 +157,8 @@ public class DataServlet extends HttpServlet {
     Entity commentEntity = new Entity("Comment");
     commentEntity.setProperty("content", comment.getContent());
     commentEntity.setProperty("id", comment.getIdString());
-    commentEntity.setProperty("user", comment.getUser());
+    commentEntity.setProperty("userId", comment.getUserId());
+    commentEntity.setProperty("userEmail", comment.getUsername());
     commentEntity.setProperty("timestamp", comment.getTimestamp());
     return commentEntity;
   }
@@ -238,20 +242,6 @@ public class DataServlet extends HttpServlet {
     for (Entity entity: results.asIterable()) {
       datastore.delete(entity.getKey());
     }
-  }
-
-  /** Returns the nickname of the user with given id if it exists. */
-  private Optional<String> getNicknameOfUser(String id) {
-    DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
-    Query query = new Query("User")
-        .setFilter(new Query.FilterPredicate("id", Query.FilterOperator.EQUAL, id));
-    PreparedQuery results = datastore.prepare(query);
-    Entity entity = results.asSingleEntity();
-    if (entity == null) {
-      return Optional.empty();
-    }
-    String nickname = (String) entity.getProperty("nickname");
-    return Optional.of(nickname);
   }
 
   private class SortOrder {
