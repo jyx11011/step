@@ -11,6 +11,7 @@ public class Comment {
   private String userId;
   private String username;
   private long timestamp;
+  private String imageUrl;
   
   public Comment(String content, String userId, String username) {
     this.id = UUID.randomUUID();
@@ -20,12 +21,22 @@ public class Comment {
     this.timestamp = System.currentTimeMillis();
   }
 
+  public Comment(String content, String userId, String username, String imageUrl) {
+    this(content, userId, username);
+    this.imageUrl = imageUrl;
+  }
+
   public Comment(String id, String content, String userId, String username, long timestamp) {
     this.id = UUID.fromString(id);
     this.content = content;
     this.userId = userId;
     this.username = username;
     this.timestamp = timestamp;
+  }
+
+  public Comment(String id, String content, String userId, String username, String imageUrl, long timestamp) {
+    this(id, content, userId, username, timestamp);
+    this.imageUrl = imageUrl;
   }
 
   public UUID getId() {
@@ -46,6 +57,10 @@ public class Comment {
 
   public String getUsername() {
     return username;
+  }
+
+  public String getImageUrl() {
+    return imageUrl;
   }
 
   public long getTimestamp() {

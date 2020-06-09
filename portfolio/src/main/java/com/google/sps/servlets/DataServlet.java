@@ -14,6 +14,11 @@
 
 package com.google.sps.servlets;
 
+import com.google.appengine.api.blobstore.BlobInfo;
+import com.google.appengine.api.blobstore.BlobInfoFactory;
+import com.google.appengine.api.blobstore.BlobKey;
+import com.google.appengine.api.blobstore.BlobstoreService;
+import com.google.appengine.api.blobstore.BlobstoreServiceFactory;
 import com.google.appengine.api.datastore.Cursor;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
@@ -25,6 +30,9 @@ import com.google.appengine.api.datastore.Query;
 import com.google.appengine.api.datastore.Query.FilterOperator;
 import com.google.appengine.api.datastore.QueryResultList;
 import com.google.appengine.api.datastore.Query.SortDirection;
+import com.google.appengine.api.images.ImagesService;
+import com.google.appengine.api.images.ImagesServiceFactory;
+import com.google.appengine.api.images.ServingUrlOptions;
 import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
 import com.google.gson.Gson;
@@ -32,7 +40,11 @@ import com.google.sps.data.Comment;
 import com.google.sps.servlets.utils.UserInfoHelper;
 import java.io.IOException;
 import java.lang.Integer;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -63,8 +75,6 @@ public class DataServlet extends HttpServlet {
 
   @Override
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
-    String commentContent = request.getParameter("comment");
-
     UserService userService = UserServiceFactory.getUserService();
     if (!userService.isUserLoggedIn()) {
       String urlToRedirectToAfterUserLogsIn = "/";
@@ -76,7 +86,10 @@ public class DataServlet extends HttpServlet {
     String userId = userService.getCurrentUser().getUserId();
     String userEmail = userService.getCurrentUser().getEmail();
 
-    Comment comment = new Comment(commentContent, userId, userEmail);
+    String commentContent = request.getParameter("comment");
+    String imageUrl = getUploadedFileUrl(request, "image-upload");
+    
+    Comment comment = new Comment(commentContent, userId, userEmail, imageUrl);
     Entity commentEntity = transformCommentToEntity(comment);
     datastore.put(commentEntity);
 
@@ -147,7 +160,11 @@ public class DataServlet extends HttpServlet {
     String userEmail = (String) entity.getProperty("userEmail");
     String username = UserInfoHelper.getNicknameOfUser(userId).orElse(userEmail);
     long timestamp = (long) entity.getProperty("timestamp");
-    Comment comment = new Comment(id, content, userId, username, timestamp);
+    String imageUrl = null;
+    if (entity.getProperty("imageUrl") != null) {
+      imageUrl = (String) entity.getProperty("imageUrl");
+    }
+    Comment comment = new Comment(id, content, userId, username, imageUrl, timestamp);
     return comment;
   }
 
@@ -159,6 +176,10 @@ public class DataServlet extends HttpServlet {
     commentEntity.setProperty("userId", comment.getUserId());
     commentEntity.setProperty("userEmail", comment.getUsername());
     commentEntity.setProperty("timestamp", comment.getTimestamp());
+
+    if (comment.getImageUrl() != null) {
+      commentEntity.setProperty("imageUrl", comment.getImageUrl());
+    }
     return commentEntity;
   }
 
@@ -250,6 +271,35 @@ public class DataServlet extends HttpServlet {
     SortOrder(String property, SortDirection sortDirection) {
       this.property = property;
       this.sortDirection = sortDirection;
+    }
+  }
+
+  /** Returns a URL that points to the uploaded file, or null if the user didn't upload a file. */
+  private String getUploadedFileUrl(HttpServletRequest request, String formInputElementName) {
+    BlobstoreService blobstoreService = BlobstoreServiceFactory.getBlobstoreService();
+    Map<String, List<BlobKey>> blobs = blobstoreService.getUploads(request);
+    List<BlobKey> blobKeys = blobs.get(formInputElementName);
+
+    if (blobKeys == null || blobKeys.isEmpty()) {
+      return null;
+    }
+
+    BlobKey blobKey = blobKeys.get(0);
+
+    BlobInfo blobInfo = new BlobInfoFactory().loadBlobInfo(blobKey);
+    if (blobInfo.getSize() == 0) {
+      blobstoreService.delete(blobKey);
+      return null;
+    }
+
+    ImagesService imagesService = ImagesServiceFactory.getImagesService();
+    ServingUrlOptions options = ServingUrlOptions.Builder.withBlobKey(blobKey);
+    
+    try {
+      URL url = new URL(imagesService.getServingUrl(options));
+      return url.getPath();
+    } catch (MalformedURLException e) {
+      return imagesService.getServingUrl(options);
     }
   }
 
