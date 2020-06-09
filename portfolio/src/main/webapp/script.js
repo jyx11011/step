@@ -244,7 +244,7 @@ function hideCommentForm(loginStatus) {
   const logoutContainer = document.getElementById('logout-container');
   logoutContainer.hidden = true;
   const commentForm = document.getElementById('comment-form');
-  commentForm.className = 'hide';
+  commentForm.classList.add('logout')
 }
 
 function showCommentForm(loginStatus) {
@@ -257,7 +257,7 @@ function showCommentForm(loginStatus) {
   const logoutLink = document.getElementById('logout-link');
   logoutLink.href = loginStatus.logoutUrl;
   const commentForm = document.getElementById('comment-form');
-  commentForm.className = '';
+  commentForm.classList.remove('logout');
 }
 
 function showNicknameForm() {
@@ -270,8 +270,21 @@ function hideNicknameForm() {
   nicknameForm.hidden = true;
 }
 
+function addBlobstoreUrlToForm() {
+  fetch('/blobstore-upload-url')
+    .then((response) => {
+      return response.text();
+    })
+    .then((imageUploadUrl) => {
+      const commentForm = document.getElementById('comment-form');
+      commentForm.action = imageUploadUrl;
+      commentForm.classList.remove('hide');
+    });
+}
+
 window.onload = () => {
   fetchComments();
   addRandomFact();
   configureCommentForm();
+  addBlobstoreUrlToForm();
 }
