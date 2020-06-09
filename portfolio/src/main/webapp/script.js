@@ -180,10 +180,7 @@ function resetComments() {
   fetchComments();
 }
 
-function createElementForComment(comment) {
-  const commentElement = document.createElement('div');
-  commentElement.className = 'comment'
-  
+function createCommentHeader(comment) {
   const header = document.createElement('div');
   header.className = 'comment-header';
   const usernameElement = document.createElement('span');
@@ -193,12 +190,11 @@ function createElementForComment(comment) {
   const timestampElement = document.createElement('span');
   timestampElement.innerText = (new Date(parseInt(comment.timestamp))).toLocaleString();
   timestampElement.className = 'timestamp';
-  header.append(usernameElement, timestampElement)
-  
-  const contentElement = document.createElement('div');
-  contentElement.innerText = comment.content;
-  contentElement.className = 'content';
-  
+  header.append(usernameElement, timestampElement);
+  return header;
+}
+
+function createCommentButton(comment) {
   const commentButtonElement = document.createElement('div');
   commentButtonElement.className = 'comment-button';
   const deleteButton = document.createElement('button');
@@ -207,6 +203,24 @@ function createElementForComment(comment) {
   deleteButton.className = 'delete-comment';
   commentButtonElement.append(deleteButton);
 
+  return commentButtonElement;
+}
+
+function createCommentContent(comment) {
+  const contentElement = document.createElement('div');
+  contentElement.innerText = comment.content;
+  contentElement.className = 'content';
+  return contentElement;
+}
+
+function createElementForComment(comment) {
+  const commentElement = document.createElement('div');
+  commentElement.className = 'comment'
+
+  const header = createCommentHeader(comment);
+  const content = createCommentContent(comment);
+  const button = createCommentButton(comment);
+  
   commentElement.append(header, contentElement, commentButtonElement);
   return commentElement;
 }
