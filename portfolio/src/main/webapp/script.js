@@ -155,25 +155,16 @@ function toggleLoadMoreButton(visible) {
  * Returns a request string for the given key,value paris.
  */
 function getRequestParameter(map) {
-  if (isUndefined(map)) {
+  if (map == null) {
     return '';
   }
+  // Ignore entries whose value is undefined
+  Array.from(map.keys())
+    .filter(key => isUndefined(map.get(key)))
+    .forEach(key => map.delete(key));
 
-  let results = '';
-  let first = true;
-  for(const [key, value] of map.entries()) {
-    if (isUndefined(value)) {
-      continue;
-    }
-    if (first) {
-      results = '?';
-      first = false;
-    } else {
-      results += '&';
-    }
-    results += key + '=' + value;
-  }
-  return results;
+  const params = new URLSearchParams(Object.fromEntries(map));
+  return '?' + params.toString();
 }
 
 function isUndefined(value) {
