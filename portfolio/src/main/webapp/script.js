@@ -210,6 +210,14 @@ function createCommentContent(comment) {
   const contentElement = document.createElement('div');
   contentElement.innerText = comment.content;
   contentElement.className = 'content';
+
+  if (comment.imageUrl) {
+    const imageElement = document.createElement('img');
+    imageElement.src = comment.imageUrl;
+    imageElement.alt = 'comment image';
+    contentElement.append(imageElement);
+  }
+
   return contentElement;
 }
 
@@ -221,7 +229,7 @@ function createElementForComment(comment) {
   const content = createCommentContent(comment);
   const button = createCommentButton(comment);
   
-  commentElement.append(header, contentElement, commentButtonElement);
+  commentElement.append(header, content, button);
   return commentElement;
 }
 
