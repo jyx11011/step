@@ -319,7 +319,7 @@ function drawChart() {
           max: 36,
           min: 29
         },
-        title: "Temperature(Celsius)"
+        title: "Temperature (Celsius)"
       }
   };
 
