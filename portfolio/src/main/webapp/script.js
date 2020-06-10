@@ -301,30 +301,63 @@ function addBlobstoreUrlToForm() {
 
 /** Creates a chart for comments and adds it to the page. */
 function drawCommentStatsChart() {
-  var data = new google.visualization.DataTable();
-  data.addColumn('date', 'Date');
+  let data = new google.visualization.DataTable();
+  data.addColumn('string', 'Date');
   data.addColumn('number', 'Number of comments');
-  fetch("/comments-stats?date=2020-06-09")
-    .then(response => response.text())
-    .then(number => console.log(number));
   const options = {
-     title: 'Comments statistics over last week',
+     title: 'Comments statistics over the last 7 days',
      height: 400,
-     chartArea: { width:'60%',height:'75%' },
+     chartArea: { width:'80%', height:'75%' },
      vAxis: {
-        viewWindow: {
-          max: 36,
-          min: 29
-        },
-        title: "Number of comments"
+        title: 'Number of comments'
       },
       hAxis: {
-        title: "Date"
-      }
+        title: 'Date'
+      },
+      legend: 'bottom'
   };
-
   const chart = new google.visualization.LineChart(document.getElementById('comment-stats-chart'));
-  chart.draw(data, options);
+
+  const today = new Date();
+  const dates = datesInWeekBefore(today);
+  const params = dates.map(date => 'date=' + formatDate(date)).join('&');
+  fetch('/comments-stats?' + params)
+    .then(response => response.json())
+    .then(commentsCount => {
+      for (const date of dates) {
+        data.addRow([formatDate(date), commentsCount[formatDate(date)]]);
+      }
+      chart.draw(data, options);
+    });
+}
+
+/** Returns dates in the week before the given date. */
+function datesInWeekBefore(date) {
+  let dates = [];
+  for (i = -6; i <= 0; i++) {
+    const currentDate = new Date();
+    currentDate.setDate(date.getDate() + i);
+    dates.push(currentDate);
+  }
+  return dates;
+}
+
+/** Formats date into YYYY-MM-DD. */
+function formatDate(date) {
+  return date.getFullYear() + '-' 
+      + standardize(date.getMonth() + 1, 2) + '-' 
+      + standardize(date.getDate(), 2);
+}
+
+/** 
+ * Returns a string representation of the number after 
+ * standardizing it to the required number of digits. 
+*/
+function standardize(number, digit){
+  if (number.toString().length < digit) {
+    return '0'.repeat(digit - number.toString().length) + number;
+  }
+  return number.toString();
 }
 
 window.onload = () => {

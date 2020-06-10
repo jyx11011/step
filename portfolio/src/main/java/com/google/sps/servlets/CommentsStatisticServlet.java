@@ -12,12 +12,15 @@ import com.google.appengine.api.datastore.QueryResultList;
 import com.google.gson.Gson;
 import com.google.sps.data.Comment;
 import java.io.IOException;
+import java.lang.Integer;
 import java.sql.Timestamp;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.Map;
+import java.util.HashMap;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -33,17 +36,24 @@ public class CommentsStatisticServlet extends HttpServlet {
 
   @Override
   public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
-    String dateString = request.getParameter("date");
-    LocalDate date;
-    try {
-      date = LocalDate.parse(dateString, dateFormatter);
-    } catch(DateTimeParseException e) {
-      response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-      return;
+    String[] dateStrings = (String[]) request.getParameterValues("date");
+    Map<String, Integer> commentsCount = new HashMap<>();
+    for (String dateString: dateStrings) {
+      LocalDate date;
+      try {
+        date = LocalDate.parse(dateString, dateFormatter);
+      } catch(DateTimeParseException e) {
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+        return;
+      }
+      int count = getNumberOfCommentsOnDate(date);
+      commentsCount.put(dateString, count);
     }
-    int count = getNumberOfCommentsOnDate(date);
-    response.setContentType("text/html;");
-    response.getWriter().println(count);
+    Gson gson = new Gson();
+    String json = gson.toJson(commentsCount);
+
+    response.setContentType("application/json;");
+    response.getWriter().println(json);
   }
 
   /** Returns the number comments on the given date. */
