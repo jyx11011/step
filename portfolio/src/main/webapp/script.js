@@ -366,9 +366,17 @@ function standardize(number, digit){
   return number.toString();
 }
 
+function initMap() {
+  const map = new google.maps.Map(document.getElementById('map-container'), {
+    center: {lat: 1.352, lng: 103.8198},
+    zoom: 12
+  });
+}
+
 window.onload = () => {
   fetchComments();
   addRandomFact();
   configureCommentForm();
   addBlobstoreUrlToForm();
+  initMap();
 }
