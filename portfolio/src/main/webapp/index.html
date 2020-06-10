@@ -50,7 +50,8 @@
         </ul>
       </div>
       <h3 class="sec-header">My Image Gallery</h3>
-      <div id="gallery" onclick="shuffleImagesInGallery()"> 
+      <button id="shuffle-images" onclick="shuffleImagesInGallery()">Shuffle</button>
+      <div id="gallery">
         <img src="images/photo.JPG" alt="photo of me" />
         <img src="images/jewel.jpg" alt="jewel" />
         <img src="images/gardenbythebay.jpg" alt="gardent-by-the-bay" />
@@ -101,6 +102,10 @@
       </div>
       
       <div id="comments-container"></div>
+      <div id="load-more">
+        <button id="load-more-btn" onclick="fetchNextPageOfComments()">Load more...</button>
+        <div id="no-more-comments" class="hide">No more comments</div>
+      </div>
       <form action="/comments" method="POST" id="comment-form">
         <div>
           <label for="username-input">Username</label>

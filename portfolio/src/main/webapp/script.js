@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+let cursor = null;
+
 /**
  * Adds a random fact to the page.
  */
@@ -83,50 +85,82 @@ function fetchCommentsWithUserInput() {
   const limit = getCommentLimit();
   const usernameFilter = getUsernameFilter();
   const sortOrder = getCommentsSortOrder();
-  const map = new Map([['limit', limit], ['username', usernameFilter], ['order', sortOrder]]);
+  const map = new Map([
+      ['limit', limit], ['username', usernameFilter], ['order', sortOrder]]);
   fetchComments(map);
   return false;
 }
 
 /**
- * Fetches comments with the given requirements.
+ * Fetches next batch of comments.
  */
-function fetchComments(requirements) {
-  fetch('/comments' + getRequestParameter(requirements))
-    .then(response => response.json())
-    .then(json => {
-      const commentsContainer = document.getElementById('comments-container');
-      commentsContainer.innerHTML = '';
-      for (const comment of json) {
-        const commentElement = createElementForComment(comment);
-        commentsContainer.appendChild(commentElement);
-      }
-    });
+function fetchNextPageOfComments() {
+  const limit = getCommentLimit();
+  const usernameFilter = getUsernameFilter();
+  const sortOrder = getCommentsSortOrder();
+  const map = new Map([
+      ['limit', limit], ['username', usernameFilter], ['order', sortOrder], ['start', cursor]]);
+  fetchComments(map, false);
 }
 
 /**
- * Returns a request parameter string for the given key,value paris.
+ * Fetches comments with the given requirements.
+ */
+function fetchComments(requirements, removeExisting = true) {
+  fetch('/comments' + getRequestParameter(requirements))
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(response.statusText);
+      }
+      return response.json()
+    }).then(json => {
+      const comments = json.comments;
+      const commentsContainer = document.getElementById('comments-container');
+      if (removeExisting) {
+        commentsContainer.innerHTML = '';
+      }
+
+      if (json.isEndOfComments) {
+        toggleLoadMoreButton(false);
+        return;
+      }
+
+      toggleLoadMoreButton(true);
+      for (const comment of comments) {
+        const commentElement = createElementForComment(comment);
+        commentsContainer.appendChild(commentElement);
+      }
+
+      cursor = json.cursor;
+    }).catch(error => console.log(error));
+}
+
+function toggleLoadMoreButton(visible) {
+  const noMoreCommentsContainer = document.getElementById('no-more-comments');
+  const loadMoreButton = document.getElementById('load-more-btn');
+  if (visible) {
+    loadMoreButton.style.display = 'inline-block';
+    noMoreCommentsContainer.className = 'hide';
+  } else {
+    loadMoreButton.style.display = 'none';
+    noMoreCommentsContainer.className = 'appear';
+  }
+}
+
+/**
+ * Returns a request string for the given key,value paris.
  */
 function getRequestParameter(map) {
-  if (isUndefined(map)) {
+  if (map == null) {
     return '';
   }
+  // Ignore entries whose value is undefined
+  Array.from(map.keys())
+    .filter(key => isUndefined(map.get(key)))
+    .forEach(key => map.delete(key));
 
-  let results = '';
-  let first = true;
-  for(const [key, value] of map.entries()) {
-    if (isUndefined(value)) {
-      continue;
-    }
-    if (first) {
-      results = '?';
-      first = false;
-    } else {
-      results += '&';
-    }
-    results += key + '=' + value;
-  }
-  return results;
+  const params = new URLSearchParams(Object.fromEntries(map));
+  return '?' + params.toString();
 }
 
 function isUndefined(value) {

@@ -62,14 +62,16 @@ body {
   font: 17px;
 }
 
-#fact-button {
+#fact-button,
+#shuffle-images {
   background: whitesmoke;
   border: 1px solid #8eb8ce;
   color: #8eb8ce;
   font-weight: bold;
 }
 
-#fact-button:hover {
+#fact-button:hover,
+#shuffle-images:hover {
   background: #8eb8ce;
   color: whitesmoke;
 }
@@ -202,4 +204,31 @@ body {
 
 #comment-text {
   margin: 5px 0;
+}
+
+#load-more {
+  display: flex;
+  justify-content: center;
+}
+
+#load-more-btn {
+  background: whitesmoke;
+  border: 1px solid whitesmoke;
+  color:  #70a4c0;
+  display: inline-block;
+  font: bold;
+}
+
+#load-more-btn:hover {
+  border: 1px solid #70a4c0;
+  display: inline-block;
+  box-shadow: 3px 3px #c1cacfc2;
+}
+
+#no-more-comments.hide {
+  opacity: 0;
+}
+
+#no-more-comments.appear {
+  opacity: 1;
 }

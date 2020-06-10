@@ -14,6 +14,7 @@
 
 package com.google.sps.servlets;
 
+import com.google.appengine.api.datastore.Cursor;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
@@ -22,6 +23,7 @@ import com.google.appengine.api.datastore.FetchOptions.Builder;
 import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.Query;
 import com.google.appengine.api.datastore.Query.FilterOperator;
+import com.google.appengine.api.datastore.QueryResultList;
 import com.google.appengine.api.datastore.Query.SortDirection;
 import com.google.gson.Gson;
 import com.google.sps.data.Comment;
@@ -42,9 +44,15 @@ public class DataServlet extends HttpServlet {
     
   @Override
   public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
-    ArrayList<Comment> comments = fetchComments(request);
+    CommentsResult commentsResult;
+    try {
+      commentsResult = fetchComments(request);
+    } catch(IllegalArgumentException e) {
+      response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+      return;
+    }
     Gson gson = new Gson();
-    String json = gson.toJson(comments);
+    String json = gson.toJson(commentsResult);
 
     response.setContentType("application/json;");
     response.getWriter().println(json);
@@ -73,7 +81,7 @@ public class DataServlet extends HttpServlet {
   }
 
   /** Returns comments fetched from datastore */
-  private ArrayList<Comment> fetchComments(HttpServletRequest request) {
+  private CommentsResult fetchComments(HttpServletRequest request) throws IllegalArgumentException {
     // Prepare datastore query
     Query query = new Query("Comment");
 
@@ -82,6 +90,12 @@ public class DataServlet extends HttpServlet {
     Optional<Integer> limit = getLimit(request);
     if (limit.isPresent()) {
       fetchOptions = FetchOptions.Builder.withLimit(limit.get());
+    }
+
+    // Set start cursor
+    Optional<Cursor> cursor = getCursor(request);
+    if (cursor.isPresent()) {
+      fetchOptions.startCursor(cursor.get());
     }
     
     // Set username filter
@@ -95,14 +109,21 @@ public class DataServlet extends HttpServlet {
     query.addSort(sortOrder.property, sortOrder.sortDirection);
 
     // Create comment list
-    PreparedQuery results = datastore.prepare(query);
+    PreparedQuery preparedQuery = datastore.prepare(query);
+
+    QueryResultList<Entity> results = preparedQuery.asQueryResultList(fetchOptions);
 
     ArrayList<Comment> comments = new ArrayList<>();
-    for (Entity entity: results.asIterable(fetchOptions)) {
+    for (Entity entity: results) {
       Comment comment = transformEntityToComment(entity);
       comments.add(comment);
     }
-    return comments;
+
+    String cursorString = results.getCursor().toWebSafeString();
+    if (comments.size() == 0) {
+      return new CommentsResult(comments, cursorString, true);
+    }
+    return new CommentsResult(comments, cursorString);
   }
 
   /** Returns a Comment object constructed from the given entity. */
@@ -175,6 +196,17 @@ public class DataServlet extends HttpServlet {
     return Optional.of(limit);
   }
 
+  /** Returns the starting cursor if it exists. */
+  private Optional<Cursor> getCursor(HttpServletRequest request) {
+    if (request.getParameter("start") == null) {
+      return Optional.empty();
+    }
+
+    String startCursor = request.getParameter("start");
+    Cursor cursor = Cursor.fromWebSafeString(startCursor);
+    return Optional.of(cursor);
+  }
+
   /** Deletes all comments in datastore. */
   private void deleteAllComments() {
     Query query = new Query("Comment");
@@ -202,6 +234,22 @@ public class DataServlet extends HttpServlet {
     SortOrder(String property, SortDirection sortDirection) {
       this.property = property;
       this.sortDirection = sortDirection;
+    }
+  }
+
+  private class CommentsResult {
+    ArrayList<Comment> comments;
+    String cursor;
+    boolean isEndOfComments;
+
+    CommentsResult(ArrayList<Comment> comments, String cursor, boolean isEndOfComments) {
+      this.comments = comments;
+      this.cursor = cursor;
+      this.isEndOfComments = isEndOfComments;
+    }
+
+    CommentsResult(ArrayList<Comment> comments, String cursor) {
+      this(comments, cursor, false);
     }
   }
 }
