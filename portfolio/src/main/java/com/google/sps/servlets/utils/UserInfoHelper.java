@@ -13,10 +13,10 @@ import java.util.Optional;
  * Helper class for retrieving user information.
  */
 public class UserInfoHelper {
+  private static DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
 
   /** Returns the nickname of the user with given id if it exists. */
   public static Optional<String> getNicknameOfUser(String id) {
-    DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
     Query query = new Query("User")
         .setFilter(new Query.FilterPredicate("id", Query.FilterOperator.EQUAL, id));
     PreparedQuery results = datastore.prepare(query);
