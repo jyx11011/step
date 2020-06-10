@@ -230,12 +230,18 @@ function createElementForComment(comment) {
 
 function deleteAllComments() {
   const request = new Request('/comments', { method: 'DELETE' });
-  fetch(request).then(_ => fetchComments());
+  fetch(request).then(_ => {
+    fetchComments();
+    drawCommentStatsChart();
+   });
 }
 
 function deleteComment(id) {
   const request = new Request('/comments?id=' + id, { method: 'DELETE' });
-  fetch(request).then(response => fetchComments());
+  fetch(request).then(response => {
+    fetchComments();
+    drawCommentStatsChart();
+   });
 }
 
 /**
