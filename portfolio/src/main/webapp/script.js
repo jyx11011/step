@@ -14,7 +14,7 @@
 
 
 google.charts.load('current', {'packages':['corechart']});
-google.charts.setOnLoadCallback(drawChart);
+google.charts.setOnLoadCallback(drawCommentStatsChart);
 
 let cursor = null;
 
@@ -299,19 +299,16 @@ function addBlobstoreUrlToForm() {
     });
 }
 
-/** Creates a chart and adds it to the page. */
-function drawChart() {
-  var data = google.visualization.arrayToDataTable([
-        ["Time", "Temperature"],
-        ["5pm", 32],
-        ["6pm", 31],
-        ["7pm", 31],
-        ["8pm", 30],
-        ["9pm", 30]
-      ]);
-
+/** Creates a chart for comments and adds it to the page. */
+function drawCommentStatsChart() {
+  var data = new google.visualization.DataTable();
+  data.addColumn('date', 'Date');
+  data.addColumn('number', 'Number of comments');
+  fetch("/comments-stats?date=2020-06-09")
+    .then(response => response.text())
+    .then(number => console.log(number));
   const options = {
-     title: 'Hourly Temperature Forecast in Singapore (9 June)',
+     title: 'Comments statistics over last week',
      height: 400,
      chartArea: { width:'60%',height:'75%' },
      vAxis: {
@@ -319,11 +316,14 @@ function drawChart() {
           max: 36,
           min: 29
         },
-        title: "Temperature(Celsius)"
+        title: "Number of comments"
+      },
+      hAxis: {
+        title: "Date"
       }
   };
 
-  const chart = new google.visualization.LineChart(document.getElementById('chart-container'));
+  const chart = new google.visualization.LineChart(document.getElementById('comment-stats-chart'));
   chart.draw(data, options);
 }
 
