@@ -106,7 +106,15 @@
         <button id="load-more-btn" onclick="fetchNextPageOfComments()">Load more...</button>
         <div id="no-more-comments" class="hide">No more comments</div>
       </div>
-      <form action="/comments" method="POST" id="comment-form">
+
+      <div id="login-container">
+        <a id="login-link">Login</a> to comment!
+      </div>
+      <div id="logout-container" hidden>
+        Comment as <span id="username"></span>.
+        <a id="logout-link">Logout</a>
+      </div>
+      <form action="/comments" method="POST" id="comment-form" hidden>
         <div>
           <label for="username-input">Username</label>
           <input id="username-input" name="username" placeholder="username" required>

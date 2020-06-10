@@ -212,7 +212,45 @@ function deleteComment(id) {
   fetch(request).then(response => fetchComments());
 }
 
+/**
+ * Configures comment form depending on user login status;
+ */
+function configureCommentForm() {
+  fetch("/user")
+  .then(response => response.json())
+  .then(loginStatus => {
+    if (loginStatus.isLoggedIn) {
+      showCommentForm(loginStatus);
+    } else {
+      hideCommentForm(loginStatus);
+    }
+  })
+}
+
+function hideCommentForm(loginStatus) {
+  const loginLink = document.getElementById('login-link');
+  loginLink.href = loginStatus.loginUrl;
+  const logoutContainer = document.getElementById('logout-container');
+  logoutContainer.hidden = true;
+  const commentForm = document.getElementById('comment-form');
+  commentForm.className = 'hide';
+}
+
+function showCommentForm(loginStatus) {
+  const loginContainer = document.getElementById('login-container');
+  loginContainer.hidden = true;
+  const logoutContainer = document.getElementById('logout-container');
+  logoutContainer.hidden = false;
+  const username = document.getElementById('username');
+  username.innerText = loginStatus.userEmail;
+  const logoutLink = document.getElementById('logout-link');
+  logoutLink.href = loginStatus.logoutUrl;
+  const commentForm = document.getElementById('comment-form');
+  commentForm.className = '';
+}
+
 window.onload = () => {
   fetchComments();
   addRandomFact();
+  configureCommentForm();
 }
