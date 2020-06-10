@@ -93,7 +93,9 @@ public class DataServlet extends HttpServlet {
     
     Comment comment = new Comment(commentContent, userId, userEmail, imageUrl);
     Entity commentEntity = transformCommentToEntity(comment);
-    commentEntity.setProperty("imageBlobKey", imageBlobKey.getKeyString());
+    if (imageBlobKey != null) {
+      commentEntity.setProperty("imageBlobKey", imageBlobKey.getKeyString());
+    }
     datastore.put(commentEntity);
 
     response.sendRedirect("/index.html");
@@ -307,6 +309,9 @@ public class DataServlet extends HttpServlet {
 
   /** Returns a URL that points to the file with the given blob key. */
   private String getUploadedFileUrl(BlobKey blobKey) {
+    if (blobKey == null) {
+      return null;
+    }
     ImagesService imagesService = ImagesServiceFactory.getImagesService();
     ServingUrlOptions options = ServingUrlOptions.Builder.withBlobKey(blobKey);
     
