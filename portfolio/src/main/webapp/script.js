@@ -83,10 +83,10 @@ function getCommentsSortOrder() {
  */
 function fetchCommentsWithUserInput() {
   const limit = getCommentLimit();
-  const usernameFilter = getUsernameFilter();
+  const userEmailFilter = getUserEmailFilter();
   const sortOrder = getCommentsSortOrder();
   const map = new Map([
-      ['limit', limit], ['username', usernameFilter], ['order', sortOrder]]);
+      ['limit', limit], ['user-email', userEmailFilter], ['order', sortOrder]]);
   fetchComments(map);
   return false;
 }
@@ -96,10 +96,10 @@ function fetchCommentsWithUserInput() {
  */
 function fetchNextPageOfComments() {
   const limit = getCommentLimit();
-  const usernameFilter = getUsernameFilter();
+  const userEmailFilter = getUserEmailFilter();
   const sortOrder = getCommentsSortOrder();
   const map = new Map([
-      ['limit', limit], ['username', usernameFilter], ['order', sortOrder], ['start', cursor]]);
+      ['limit', limit], ['user-email', userEmailFilter], ['order', sortOrder], ['start', cursor]]);
   fetchComments(map, false);
 }
 
@@ -180,7 +180,11 @@ function createElementForComment(comment) {
   const usernameElement = document.createElement('span');
   usernameElement.innerText = comment.userEmail;
   usernameElement.className = 'username';
-  
+
+  fetchNicknameOfUser(comment.userEmail, 
+      (nickname) => {
+        usernameElement.innerText = nickname
+      });
   const timestampElement = document.createElement('span');
   timestampElement.innerText = (new Date(parseInt(comment.timestamp))).toLocaleString();
   timestampElement.className = 'timestamp';
@@ -200,6 +204,17 @@ function createElementForComment(comment) {
 
   commentElement.append(header, contentElement, commentButtonElement);
   return commentElement;
+}
+
+function fetchNicknameOfUser(email, completionHandler) {
+  fetch('/nickname?email=' + email)
+    .then(response => response.json())
+    .then(json => {
+      if (json.nickname == null) {
+        return;
+      }
+      completionHandler(json.nickname);
+    });
 }
 
 function deleteAllComments() {
