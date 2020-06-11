@@ -84,14 +84,14 @@ public class DataServlet extends HttpServlet {
       return;
     }
     
-    String userId = userService.getCurrentUser().getUserId();
     String userEmail = userService.getCurrentUser().getEmail();
 
     String commentContent = request.getParameter("comment");
     BlobKey imageBlobKey = getUploadedFileBlobKey(request, "image-upload");
     String imageUrl = getUploadedFileUrl(imageBlobKey);
     
-    Comment comment = new Comment(commentContent, userId, userEmail, imageUrl);
+    Comment comment = new Comment(commentContent, userEmail, imageUrl);
+
     Entity commentEntity = transformCommentToEntity(comment);
     if (imageBlobKey != null) {
       commentEntity.setProperty("imageBlobKey", imageBlobKey.getKeyString());
@@ -129,10 +129,10 @@ public class DataServlet extends HttpServlet {
       fetchOptions.startCursor(cursor.get());
     }
     
-    // Set username filter
-    Optional<String> username = getUsername(request);
-    if (username.isPresent()) {
-      query.addFilter("userEmail", FilterOperator.EQUAL, username.get());
+    // Set userEmail filter
+    Optional<String> userEmail = getUserEmail(request);
+    if (userEmail.isPresent()) {
+      query.addFilter("userEmail", FilterOperator.EQUAL, userEmail.get());
     }
 
     // Add sort order
@@ -161,15 +161,13 @@ public class DataServlet extends HttpServlet {
   private Comment transformEntityToComment(Entity entity) {
     String content = (String) entity.getProperty("content");
     String id = (String) entity.getProperty("id");
-    String userId = (String) entity.getProperty("userId");
     String userEmail = (String) entity.getProperty("userEmail");
-    String username = UserInfoHelper.getNicknameOfUser(userId).orElse(userEmail);
     long timestamp = (long) entity.getProperty("timestamp");
     String imageUrl = null;
     if (entity.getProperty("imageUrl") != null) {
       imageUrl = (String) entity.getProperty("imageUrl");
     }
-    Comment comment = new Comment(id, content, userId, username, imageUrl, timestamp);
+    Comment comment = new Comment(id, content, userEmail, imageUrl, timestamp);
     return comment;
   }
 
@@ -178,8 +176,7 @@ public class DataServlet extends HttpServlet {
     Entity commentEntity = new Entity("Comment");
     commentEntity.setProperty("content", comment.getContent());
     commentEntity.setProperty("id", comment.getIdString());
-    commentEntity.setProperty("userId", comment.getUserId());
-    commentEntity.setProperty("userEmail", comment.getUsername());
+    commentEntity.setProperty("userEmail", comment.getUserEmail());
     commentEntity.setProperty("timestamp", comment.getTimestamp());
 
     if (comment.getImageUrl() != null) {
@@ -188,12 +185,12 @@ public class DataServlet extends HttpServlet {
     return commentEntity;
   }
 
-  /** Returns the username requested by the client if it exists. */
-  private Optional<String> getUsername(HttpServletRequest request) {
-    if (request.getParameter("username") == null) {
+  /** Returns the user email requested by the client if it exists. */
+  private Optional<String> getUserEmail(HttpServletRequest request) {
+    if (request.getParameter("user-email") == null) {
       return Optional.empty();
     }
-    return Optional.of(request.getParameter("username"));
+    return Optional.of(request.getParameter("user-email"));
   }
 
   /** 

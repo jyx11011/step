@@ -8,34 +8,31 @@ import java.util.UUID;
 public class Comment {
   private UUID id;
   private String content;
-  private String userId;
-  private String username;
+  private String userEmail;
   private long timestamp;
   private String imageUrl;
   
-  public Comment(String content, String userId, String username) {
+  public Comment(String content, String userEmail) {
     this.id = UUID.randomUUID();
     this.content = content;
-    this.userId = userId;
-    this.username = username;
+    this.userEmail = userEmail;
     this.timestamp = System.currentTimeMillis();
   }
 
-  public Comment(String content, String userId, String username, String imageUrl) {
-    this(content, userId, username);
+  public Comment(String content,String userEmail, String imageUrl) {
+    this(content, userEmail);
     this.imageUrl = imageUrl;
   }
 
-  public Comment(String id, String content, String userId, String username, long timestamp) {
+  public Comment(String id, String content, String userEmail, long timestamp) {
     this.id = UUID.fromString(id);
     this.content = content;
-    this.userId = userId;
-    this.username = username;
+    this.userEmail = userEmail;
     this.timestamp = timestamp;
   }
 
-  public Comment(String id, String content, String userId, String username, String imageUrl, long timestamp) {
-    this(id, content, userId, username, timestamp);
+  public Comment(String id, String content, String userEmail, String imageUrl, long timestamp) {
+    this(id, content, userEmail, timestamp);
     this.imageUrl = imageUrl;
   }
 
@@ -51,12 +48,8 @@ public class Comment {
     return content;
   }
 
-  public String getUserId() {
-    return userId;
-  }
-
-  public String getUsername() {
-    return username;
+  public String getUserEmail() {
+    return userEmail;
   }
 
   public String getImageUrl() {

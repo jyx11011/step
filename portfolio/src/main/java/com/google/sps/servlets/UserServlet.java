@@ -19,7 +19,7 @@ import javax.servlet.http.HttpServletResponse;
 @WebServlet("/user")
 public class UserServlet extends HttpServlet {
 
-  DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+  private DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
 
   @Override
   public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
@@ -33,7 +33,7 @@ public class UserServlet extends HttpServlet {
       String logoutUrl = userService.createLogoutURL(urlToRedirectToAfterUserLogsOut);
       
       String userId = userService.getCurrentUser().getUserId();
-      Optional<String> nickname = UserInfoHelper.getNicknameOfUser(userId);
+      Optional<String> nickname = UserInfoHelper.getNicknameOfUser(userEmail);
       if (nickname.isPresent()) {
         json.addProperty("nickname", nickname.get());
       }
@@ -62,6 +62,7 @@ public class UserServlet extends HttpServlet {
       Entity entity = new Entity("User", id);
       entity.setProperty("id", id);
       entity.setProperty("nickname", userNickname);
+      entity.setProperty("email", userEmail);
       datastore.put(entity);
       response.sendRedirect("/index.html");
     } else {

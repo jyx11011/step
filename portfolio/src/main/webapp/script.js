@@ -67,11 +67,11 @@ function getCommentLimit() {
 }
 
 /**
- * Returns the comments username filter.
+ * Returns the comments user email filter.
  */
-function getUsernameFilter() {
-  const username = document.getElementById('username-filter').value;
-  return username ? username : undefined;
+function getUserEmailFilter() {
+  const userEmail = document.getElementById('user-email-filter').value;
+  return userEmail ? userEmail : undefined;
 }
 
 /**
@@ -87,10 +87,10 @@ function getCommentsSortOrder() {
  */
 function fetchCommentsWithUserInput() {
   const limit = getCommentLimit();
-  const usernameFilter = getUsernameFilter();
+  const userEmailFilter = getUserEmailFilter();
   const sortOrder = getCommentsSortOrder();
   const map = new Map([
-      ['limit', limit], ['username', usernameFilter], ['order', sortOrder]]);
+      ['limit', limit], ['user-email', userEmailFilter], ['order', sortOrder]]);
   fetchComments(map);
   return false;
 }
@@ -100,10 +100,10 @@ function fetchCommentsWithUserInput() {
  */
 function fetchNextPageOfComments() {
   const limit = getCommentLimit();
-  const usernameFilter = getUsernameFilter();
+  const userEmailFilter = getUserEmailFilter();
   const sortOrder = getCommentsSortOrder();
   const map = new Map([
-      ['limit', limit], ['username', usernameFilter], ['order', sortOrder], ['start', cursor]]);
+      ['limit', limit], ['user-email', userEmailFilter], ['order', sortOrder], ['start', cursor]]);
   fetchComments(map, false);
 }
 
@@ -179,9 +179,13 @@ function createCommentHeader(comment) {
   const header = document.createElement('div');
   header.className = 'comment-header';
   const usernameElement = document.createElement('span');
-  usernameElement.innerText = comment.username;
+  usernameElement.innerText = comment.userEmail;
   usernameElement.className = 'username';
-  
+
+  fetchNicknameOfUser(comment.userEmail, 
+      (nickname) => {
+        usernameElement.innerText = nickname
+      });
   const timestampElement = document.createElement('span');
   timestampElement.innerText = (new Date(parseInt(comment.timestamp))).toLocaleString();
   timestampElement.className = 'timestamp';
@@ -226,6 +230,17 @@ function createElementForComment(comment) {
   
   commentElement.append(header, content, button);
   return commentElement;
+}
+
+function fetchNicknameOfUser(email, completionHandler) {
+  fetch('/nickname?email=' + email)
+    .then(response => response.json())
+    .then(json => {
+      if (json.nickname == null) {
+        return;
+      }
+      completionHandler(json.nickname);
+    });
 }
 
 function deleteAllComments() {
