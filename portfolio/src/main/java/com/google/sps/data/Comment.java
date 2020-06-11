@@ -20,7 +20,7 @@ public class Comment {
   }
 
   public Comment(String content,String userEmail, String imageUrl) {
-    this(content, username);
+    this(content, userEmail);
     this.imageUrl = imageUrl;
   }
 

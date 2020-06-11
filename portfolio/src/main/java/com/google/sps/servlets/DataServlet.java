@@ -167,7 +167,7 @@ public class DataServlet extends HttpServlet {
     if (entity.getProperty("imageUrl") != null) {
       imageUrl = (String) entity.getProperty("imageUrl");
     }
-    Comment comment = new Comment(id, content, username, imageUrl, timestamp);
+    Comment comment = new Comment(id, content, userEmail, imageUrl, timestamp);
     return comment;
   }
 
