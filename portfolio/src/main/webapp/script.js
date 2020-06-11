@@ -12,6 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+
+google.charts.load('current', {'packages':['corechart']});
+google.charts.setOnLoadCallback(drawChart);
+
 let cursor = null;
 
 /**
@@ -308,6 +312,34 @@ function addBlobstoreUrlToForm() {
       commentForm.action = imageUploadUrl;
       commentForm.classList.remove('hide');
     });
+}
+
+/** Creates a chart and adds it to the page. */
+function drawChart() {
+  var data = google.visualization.arrayToDataTable([
+        ["Time", "Temperature"],
+        ["5pm", 32],
+        ["6pm", 31],
+        ["7pm", 31],
+        ["8pm", 30],
+        ["9pm", 30]
+      ]);
+
+  const options = {
+     title: 'Hourly Temperature Forecast in Singapore (9 June)',
+     height: 400,
+     chartArea: { width:'60%',height:'75%' },
+     vAxis: {
+        viewWindow: {
+          max: 36,
+          min: 29
+        },
+        title: "Temperature (Celsius)"
+      }
+  };
+
+  const chart = new google.visualization.LineChart(document.getElementById('chart-container'));
+  chart.draw(data, options);
 }
 
 window.onload = () => {
