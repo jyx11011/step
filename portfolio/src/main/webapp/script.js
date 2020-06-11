@@ -340,13 +340,17 @@ function drawCommentStatsChart() {
   const chart = new google.visualization.LineChart(document.getElementById('comment-stats-chart'));
 
   const today = new Date();
-  const dates = datesInWeekBefore(today);
-  const params = dates.map(date => 'date=' + formatDate(date)).join('&');
+  const dates = datesInWeekBefore(today).map(date => formatDate(date));
+  const params = 'start-date=' + dates[0] + '&end-date=' + dates[6];
   fetch('/comments-stats?' + params)
     .then(response => response.json())
     .then(commentsCount => {
       for (const date of dates) {
-        data.addRow([formatDate(date), commentsCount[formatDate(date)]]);
+        let numberOfComment = commentsCount[date];
+        if (numberOfComment == null) {
+          numberOfComment = 0;
+        }
+        data.addRow([date, numberOfComment]);
       }
       chart.draw(data, options);
     });
