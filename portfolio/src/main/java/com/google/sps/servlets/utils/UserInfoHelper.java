@@ -15,10 +15,10 @@ import java.util.Optional;
 public class UserInfoHelper {
   private static DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
 
-  /** Returns the nickname of the user with given id if it exists. */
-  public static Optional<String> getNicknameOfUser(String id) {
+  /** Returns the nickname of the user with given email if it exists. */
+  public static Optional<String> getNicknameOfUser(String email) {
     Query query = new Query("User")
-        .setFilter(new Query.FilterPredicate("id", Query.FilterOperator.EQUAL, id));
+        .setFilter(new Query.FilterPredicate("email", Query.FilterOperator.EQUAL, email));
     PreparedQuery results = datastore.prepare(query);
     Entity entity = results.asSingleEntity();
     if (entity == null) {

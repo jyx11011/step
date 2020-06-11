@@ -63,11 +63,11 @@ function getCommentLimit() {
 }
 
 /**
- * Returns the comments username filter.
+ * Returns the comments user email filter.
  */
-function getUsernameFilter() {
-  const username = document.getElementById('username-filter').value;
-  return username ? username : undefined;
+function getUserEmailFilter() {
+  const userEmail = document.getElementById('user-email-filter').value;
+  return userEmail ? userEmail : undefined;
 }
 
 /**
@@ -178,7 +178,7 @@ function createElementForComment(comment) {
   const header = document.createElement('div');
   header.className = 'comment-header';
   const usernameElement = document.createElement('span');
-  usernameElement.innerText = comment.username;
+  usernameElement.innerText = comment.userEmail;
   usernameElement.className = 'username';
   
   const timestampElement = document.createElement('span');

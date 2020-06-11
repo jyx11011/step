@@ -8,23 +8,20 @@ import java.util.UUID;
 public class Comment {
   private UUID id;
   private String content;
-  private String userId;
-  private String username;
+  private String userEmail;
   private long timestamp;
   
-  public Comment(String content, String userId, String username) {
+  public Comment(String content, String userEmail) {
     this.id = UUID.randomUUID();
     this.content = content;
-    this.userId = userId;
-    this.username = username;
+    this.userEmail = userEmail;
     this.timestamp = System.currentTimeMillis();
   }
 
-  public Comment(String id, String content, String userId, String username, long timestamp) {
+  public Comment(String id, String content, String userEmail, long timestamp) {
     this.id = UUID.fromString(id);
     this.content = content;
-    this.userId = userId;
-    this.username = username;
+    this.userEmail = userEmail;
     this.timestamp = timestamp;
   }
 
@@ -40,12 +37,8 @@ public class Comment {
     return content;
   }
 
-  public String getUserId() {
-    return userId;
-  }
-
-  public String getUsername() {
-    return username;
+  public String getUserEmail() {
+    return userEmail;
   }
 
   public long getTimestamp() {

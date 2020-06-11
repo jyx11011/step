@@ -73,10 +73,9 @@ public class DataServlet extends HttpServlet {
       return;
     }
     
-    String userId = userService.getCurrentUser().getUserId();
     String userEmail = userService.getCurrentUser().getEmail();
 
-    Comment comment = new Comment(commentContent, userId, userEmail);
+    Comment comment = new Comment(commentContent, userEmail);
     Entity commentEntity = transformCommentToEntity(comment);
     datastore.put(commentEntity);
 
@@ -111,10 +110,10 @@ public class DataServlet extends HttpServlet {
       fetchOptions.startCursor(cursor.get());
     }
     
-    // Set username filter
-    Optional<String> username = getUsername(request);
-    if (username.isPresent()) {
-      query.addFilter("userEmail", FilterOperator.EQUAL, username.get());
+    // Set userEmail filter
+    Optional<String> userEmail = getUserEmail(request);
+    if (userEmail.isPresent()) {
+      query.addFilter("userEmail", FilterOperator.EQUAL, userEmail.get());
     }
 
     // Add sort order
@@ -143,11 +142,9 @@ public class DataServlet extends HttpServlet {
   private Comment transformEntityToComment(Entity entity) {
     String content = (String) entity.getProperty("content");
     String id = (String) entity.getProperty("id");
-    String userId = (String) entity.getProperty("userId");
     String userEmail = (String) entity.getProperty("userEmail");
-    String username = UserInfoHelper.getNicknameOfUser(userId).orElse(userEmail);
     long timestamp = (long) entity.getProperty("timestamp");
-    Comment comment = new Comment(id, content, userId, username, timestamp);
+    Comment comment = new Comment(id, content, userEmail, timestamp);
     return comment;
   }
 
@@ -156,18 +153,17 @@ public class DataServlet extends HttpServlet {
     Entity commentEntity = new Entity("Comment");
     commentEntity.setProperty("content", comment.getContent());
     commentEntity.setProperty("id", comment.getIdString());
-    commentEntity.setProperty("userId", comment.getUserId());
-    commentEntity.setProperty("userEmail", comment.getUsername());
+    commentEntity.setProperty("userEmail", comment.getUserEmail());
     commentEntity.setProperty("timestamp", comment.getTimestamp());
     return commentEntity;
   }
 
-  /** Returns the username requested by the client if it exists. */
-  private Optional<String> getUsername(HttpServletRequest request) {
-    if (request.getParameter("username") == null) {
+  /** Returns the user email requested by the client if it exists. */
+  private Optional<String> getUserEmail(HttpServletRequest request) {
+    if (request.getParameter("user-email") == null) {
       return Optional.empty();
     }
-    return Optional.of(request.getParameter("username"));
+    return Optional.of(request.getParameter("user-email"));
   }
 
   /** 
