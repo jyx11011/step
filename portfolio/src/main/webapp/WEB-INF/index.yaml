@@ -1,0 +1,6 @@
+indexes:
+- kind: Comment
+  properties:
+  - name: userEmail
+  - name: timestamp
+    direction: desc
