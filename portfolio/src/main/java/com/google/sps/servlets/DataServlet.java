@@ -87,14 +87,18 @@ public class DataServlet extends HttpServlet {
     String userEmail = userService.getCurrentUser().getEmail();
 
     String commentContent = request.getParameter("comment");
-    BlobKey imageBlobKey = getUploadedFileBlobKey(request, "image-upload");
-    String imageUrl = getUploadedFileUrl(imageBlobKey);
+    Optional<BlobKey> imageBlobKey = getUploadedFileBlobKey(request, "image-upload");
+    Comment comment;
+    if (imageBlobKey.isPresent()) {
+      String imageUrl = getUploadedFileUrl(imageBlobKey.get());
+      comment = new Comment(commentContent, userEmail, imageUrl);
+    } else {
+      comment = new Comment(commentContent, userEmail);
+    }
     
-    Comment comment = new Comment(commentContent, userEmail, imageUrl);
-
     Entity commentEntity = transformCommentToEntity(comment);
-    if (imageBlobKey != null) {
-      commentEntity.setProperty("imageBlobKey", imageBlobKey.getKeyString());
+    if (imageBlobKey.isPresent()) {
+      commentEntity.setProperty("imageBlobKey", imageBlobKey.get().getKeyString());
     }
     datastore.put(commentEntity);
 
@@ -285,13 +289,13 @@ public class DataServlet extends HttpServlet {
     }
   }
 
-  /** Returns a blob key that identifies the uploaded file, or null if the user didn't upload a file. */
-  private BlobKey getUploadedFileBlobKey(HttpServletRequest request, String formInputElementName) {
+  /** Returns a blob key that identifies the uploaded file if it exists. */
+  private Optional<BlobKey> getUploadedFileBlobKey(HttpServletRequest request, String formInputElementName) {
     Map<String, List<BlobKey>> blobs = blobstoreService.getUploads(request);
     List<BlobKey> blobKeys = blobs.get(formInputElementName);
 
     if (blobKeys == null || blobKeys.isEmpty()) {
-      return null;
+      return Optional.empty();
     }
 
     BlobKey blobKey = blobKeys.get(0);
@@ -299,16 +303,13 @@ public class DataServlet extends HttpServlet {
     BlobInfo blobInfo = new BlobInfoFactory().loadBlobInfo(blobKey);
     if (blobInfo.getSize() == 0) {
       blobstoreService.delete(blobKey);
-      return null;
+      return Optional.empty();
     }
-    return blobKey;
+    return Optional.of(blobKey);
   }
 
   /** Returns a URL that points to the file with the given blob key. */
   private String getUploadedFileUrl(BlobKey blobKey) {
-    if (blobKey == null) {
-      return null;
-    }
     ImagesService imagesService = ImagesServiceFactory.getImagesService();
     ServingUrlOptions options = ServingUrlOptions.Builder.withBlobKey(blobKey);
     
@@ -321,10 +322,14 @@ public class DataServlet extends HttpServlet {
   }
 
 
-  /** Returns a URL that points to the uploaded file, or null if the user didn't upload a file. */
-  private String getUploadedFileUrl(HttpServletRequest request, String formInputElementName) {
-    BlobKey blobKey = getUploadedFileBlobKey(request, formInputElementName);
-    return getUploadedFileUrl(blobKey);
+  /** Returns a URL that points to the uploaded file if it exists. */
+  private Optional<String> getUploadedFileUrl(HttpServletRequest request, String formInputElementName) {
+    Optional<BlobKey> blobKey = getUploadedFileBlobKey(request, formInputElementName);
+    if (blobKey.isPresent()) {
+      return Optional.of(getUploadedFileUrl(blobKey.get()));
+    } else {
+      return Optional.empty();
+    }
   }
 
   private class CommentsResult {
