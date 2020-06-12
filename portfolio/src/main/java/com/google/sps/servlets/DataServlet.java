@@ -84,17 +84,21 @@ public class DataServlet extends HttpServlet {
       return;
     }
     
-    String userId = userService.getCurrentUser().getUserId();
     String userEmail = userService.getCurrentUser().getEmail();
 
     String commentContent = request.getParameter("comment");
-    BlobKey imageBlobKey = getUploadedFileBlobKey(request, "image-upload");
-    String imageUrl = getUploadedFileUrl(imageBlobKey);
+    Optional<BlobKey> imageBlobKey = getUploadedFileBlobKey(request, "image-upload");
+    Comment comment;
+    if (imageBlobKey.isPresent()) {
+      String imageUrl = getUploadedFileUrl(imageBlobKey.get());
+      comment = new Comment(commentContent, userEmail, imageUrl);
+    } else {
+      comment = new Comment(commentContent, userEmail);
+    }
     
-    Comment comment = new Comment(commentContent, userId, userEmail, imageUrl);
     Entity commentEntity = transformCommentToEntity(comment);
-    if (imageBlobKey != null) {
-      commentEntity.setProperty("imageBlobKey", imageBlobKey.getKeyString());
+    if (imageBlobKey.isPresent()) {
+      commentEntity.setProperty("imageBlobKey", imageBlobKey.get().getKeyString());
     }
     datastore.put(commentEntity);
 
@@ -129,10 +133,10 @@ public class DataServlet extends HttpServlet {
       fetchOptions.startCursor(cursor.get());
     }
     
-    // Set username filter
-    Optional<String> username = getUsername(request);
-    if (username.isPresent()) {
-      query.addFilter("userEmail", FilterOperator.EQUAL, username.get());
+    // Set userEmail filter
+    Optional<String> userEmail = getUserEmail(request);
+    if (userEmail.isPresent()) {
+      query.addFilter("userEmail", FilterOperator.EQUAL, userEmail.get());
     }
 
     // Add sort order
@@ -161,15 +165,13 @@ public class DataServlet extends HttpServlet {
   private Comment transformEntityToComment(Entity entity) {
     String content = (String) entity.getProperty("content");
     String id = (String) entity.getProperty("id");
-    String userId = (String) entity.getProperty("userId");
     String userEmail = (String) entity.getProperty("userEmail");
-    String username = UserInfoHelper.getNicknameOfUser(userId).orElse(userEmail);
     long timestamp = (long) entity.getProperty("timestamp");
     String imageUrl = null;
     if (entity.getProperty("imageUrl") != null) {
       imageUrl = (String) entity.getProperty("imageUrl");
     }
-    Comment comment = new Comment(id, content, userId, username, imageUrl, timestamp);
+    Comment comment = new Comment(id, content, userEmail, imageUrl, timestamp);
     return comment;
   }
 
@@ -178,8 +180,7 @@ public class DataServlet extends HttpServlet {
     Entity commentEntity = new Entity("Comment");
     commentEntity.setProperty("content", comment.getContent());
     commentEntity.setProperty("id", comment.getIdString());
-    commentEntity.setProperty("userId", comment.getUserId());
-    commentEntity.setProperty("userEmail", comment.getUsername());
+    commentEntity.setProperty("userEmail", comment.getUserEmail());
     commentEntity.setProperty("timestamp", comment.getTimestamp());
 
     if (comment.getImageUrl() != null) {
@@ -188,12 +189,12 @@ public class DataServlet extends HttpServlet {
     return commentEntity;
   }
 
-  /** Returns the username requested by the client if it exists. */
-  private Optional<String> getUsername(HttpServletRequest request) {
-    if (request.getParameter("username") == null) {
+  /** Returns the user email requested by the client if it exists. */
+  private Optional<String> getUserEmail(HttpServletRequest request) {
+    if (request.getParameter("user-email") == null) {
       return Optional.empty();
     }
-    return Optional.of(request.getParameter("username"));
+    return Optional.of(request.getParameter("user-email"));
   }
 
   /** 
@@ -288,13 +289,13 @@ public class DataServlet extends HttpServlet {
     }
   }
 
-  /** Returns a blob key that identifies the uploaded file, or null if the user didn't upload a file. */
-  private BlobKey getUploadedFileBlobKey(HttpServletRequest request, String formInputElementName) {
+  /** Returns a blob key that identifies the uploaded file if it exists. */
+  private Optional<BlobKey> getUploadedFileBlobKey(HttpServletRequest request, String formInputElementName) {
     Map<String, List<BlobKey>> blobs = blobstoreService.getUploads(request);
     List<BlobKey> blobKeys = blobs.get(formInputElementName);
 
     if (blobKeys == null || blobKeys.isEmpty()) {
-      return null;
+      return Optional.empty();
     }
 
     BlobKey blobKey = blobKeys.get(0);
@@ -302,16 +303,13 @@ public class DataServlet extends HttpServlet {
     BlobInfo blobInfo = new BlobInfoFactory().loadBlobInfo(blobKey);
     if (blobInfo.getSize() == 0) {
       blobstoreService.delete(blobKey);
-      return null;
+      return Optional.empty();
     }
-    return blobKey;
+    return Optional.of(blobKey);
   }
 
   /** Returns a URL that points to the file with the given blob key. */
   private String getUploadedFileUrl(BlobKey blobKey) {
-    if (blobKey == null) {
-      return null;
-    }
     ImagesService imagesService = ImagesServiceFactory.getImagesService();
     ServingUrlOptions options = ServingUrlOptions.Builder.withBlobKey(blobKey);
     
@@ -324,10 +322,14 @@ public class DataServlet extends HttpServlet {
   }
 
 
-  /** Returns a URL that points to the uploaded file, or null if the user didn't upload a file. */
-  private String getUploadedFileUrl(HttpServletRequest request, String formInputElementName) {
-    BlobKey blobKey = getUploadedFileBlobKey(request, formInputElementName);
-    return getUploadedFileUrl(blobKey);
+  /** Returns a URL that points to the uploaded file if it exists. */
+  private Optional<String> getUploadedFileUrl(HttpServletRequest request, String formInputElementName) {
+    Optional<BlobKey> blobKey = getUploadedFileBlobKey(request, formInputElementName);
+    if (blobKey.isPresent()) {
+      return Optional.of(getUploadedFileUrl(blobKey.get()));
+    } else {
+      return Optional.empty();
+    }
   }
 
   private class CommentsResult {
