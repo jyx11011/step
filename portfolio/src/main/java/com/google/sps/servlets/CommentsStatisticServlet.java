@@ -38,7 +38,7 @@ public class CommentsStatisticServlet extends HttpServlet {
 
   @Override
   public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
-    String startignDateString = request.getParameter("start-date");
+    String startingDateString = request.getParameter("start-date");
     String endingDateString = request.getParameter("end-date");
     LocalDate startingDate;
     LocalDate endingDate;
