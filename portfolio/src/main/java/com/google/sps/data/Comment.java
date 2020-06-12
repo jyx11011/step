@@ -19,7 +19,7 @@ public class Comment {
     this.timestamp = System.currentTimeMillis();
   }
 
-  public Comment(String content,String userEmail, String imageUrl) {
+  public Comment(String content, String userEmail, String imageUrl) {
     this(content, userEmail);
     this.imageUrl = imageUrl;
   }
