@@ -10,6 +10,7 @@ public class Comment {
   private String content;
   private String userEmail;
   private long timestamp;
+  private String imageUrl;
   
   public Comment(String content, String userEmail) {
     this.id = UUID.randomUUID();
@@ -18,11 +19,21 @@ public class Comment {
     this.timestamp = System.currentTimeMillis();
   }
 
+  public Comment(String content, String userEmail, String imageUrl) {
+    this(content, userEmail);
+    this.imageUrl = imageUrl;
+  }
+
   public Comment(String id, String content, String userEmail, long timestamp) {
     this.id = UUID.fromString(id);
     this.content = content;
     this.userEmail = userEmail;
     this.timestamp = timestamp;
+  }
+
+  public Comment(String id, String content, String userEmail, String imageUrl, long timestamp) {
+    this(id, content, userEmail, timestamp);
+    this.imageUrl = imageUrl;
   }
 
   public UUID getId() {
@@ -39,6 +50,10 @@ public class Comment {
 
   public String getUserEmail() {
     return userEmail;
+  }
+
+  public String getImageUrl() {
+    return imageUrl;
   }
 
   public long getTimestamp() {

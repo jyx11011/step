@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>My Portfolio</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://www.gstatic.com/charts/loader.js"></script>
     <script src="script.js"></script>
   </head>
   <body>
@@ -19,6 +20,7 @@
       <p>See me on 
           <a class="link" href="https://www.linkedin.com/in/yuxin-jiang-17b36b17a/">Linkedin</a>
             and <a class="link" href="https://github.com/jyx11011">github</a></p>
+      <div id="chart-container"></div>
       <div id="projects">
         <h3 class="sec-header">My Projects</h3>
         <p>Here are some projects that I have worked on: </p>
@@ -114,12 +116,13 @@
         Comment as <span id="username"></span>.
         <a id="logout-link">Logout</a>
       </div>
-      <form action="/comments" method="POST" id="comment-form" hidden>
+      <form action="/comments" method="POST" id="comment-form" class="hide" enctype="multipart/form-data">
         <textarea id="comment-text" name="comment" placeholder="Comment" rows="3" cols="80"></textarea>
+        <input type="file" name="image-upload" id="image-upload"></input>
         <button type="submit" id="new-comment-btn">Submit</button>
       </form>
 
-      <form action="/user" method="POST" id="nickname-form" hidden>
+      <form action="/user" method="POST" id="nickname-form" class="hide">
         <label for="text">nickname:</label>
         <input name="nickname" type="text" id="nickname-input"></input>
         <button type="submit">Submit</button>
