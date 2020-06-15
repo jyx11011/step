@@ -35,18 +35,27 @@ public final class FindMeetingQuery {
   };
 
   /**
-   * Returns true if the attendees in the event and the meeting request overlap.
+   * Returns true if the given attendees and attendees in the event overlap.
    */
-  private boolean isAttendeesOverlapping(Event event, MeetingRequest request) {
-    return !Collections.disjoint(event.getAttendees(), request.getAttendees());
+  private boolean isAttendeesOverlapping(Event event, Collection<String> attendees) {
+    return !Collections.disjoint(event.getAttendees(), attendees);
   }
 
   /**
-   * Returns a list of sorted events that overlap with the meeting request.
+   * Returns a list of sorted events that overlap with the meeting request. Whether or not
+   * optional attendees are considered depends on the includesOptional.
    */
-  private List<Event> sortOverlappingEvents(Collection<Event> events, MeetingRequest request) {
+  private List<Event> sortOverlappingEvents(Collection<Event> events, MeetingRequest request, 
+      boolean includesOptional) {
     List<Event> eventsList = events.stream()
-        .filter(event -> isAttendeesOverlapping(event, request))
+        .filter(event -> {
+          if (includesOptional) {
+            return isAttendeesOverlapping(event, request.getAttendees()) ||
+                isAttendeesOverlapping(event, request.getOptionalAttendees());
+          } else {
+            return isAttendeesOverlapping(event, request.getAttendees());
+          }
+        })
         .collect(Collectors.toList());
 
     Collections.sort(eventsList, eventsComparator);
@@ -54,11 +63,10 @@ public final class FindMeetingQuery {
   }
 
   /**
-   * Returns a list of time ranges fit the meeting request.
+   * Returns a list of time ranges fit the meeting request given the sorted list events that
+   * overlap with the request.
    */
-  public Collection<TimeRange> query(Collection<Event> events, MeetingRequest request) {
-    List<Event> eventsList = sortOverlappingEvents(events, request);
-    
+  private Collection<TimeRange> query(List<Event> eventsList, MeetingRequest request) {
     List<TimeRange> availableTimeRanges = new ArrayList<>();
     int nextFreeMinute = TimeRange.START_OF_DAY;
     for(Event event: eventsList) {
@@ -85,5 +93,21 @@ public final class FindMeetingQuery {
     }
 
     return availableTimeRanges;
+  }
+
+  /**
+   * Returns a list of time ranges fit the meeting request.
+   */
+  public Collection<TimeRange> query(Collection<Event> events, MeetingRequest request) {
+    // Queries time ranges for both mandatory and optional attendees.
+    List<Event> eventsList = sortOverlappingEvents(events, request, true);
+    Collection<TimeRange> results = query(eventsList, request);
+
+    if (results.isEmpty() && !request.getAttendees().isEmpty()) {
+      // Queries time ranges for only mandatory attendees.
+      eventsList = sortOverlappingEvents(events, request, false);
+      results = query(eventsList, request);
+    }
+    return results;
   }
 }
