@@ -63,11 +63,11 @@ function getCommentLimit() {
 }
 
 /**
- * Returns the comments username filter.
+ * Returns the comments user email filter.
  */
-function getUsernameFilter() {
-  const username = document.getElementById('username-filter').value;
-  return username ? username : undefined;
+function getUserEmailFilter() {
+  const userEmail = document.getElementById('user-email-filter').value;
+  return userEmail ? userEmail : undefined;
 }
 
 /**
@@ -83,10 +83,10 @@ function getCommentsSortOrder() {
  */
 function fetchCommentsWithUserInput() {
   const limit = getCommentLimit();
-  const usernameFilter = getUsernameFilter();
+  const userEmailFilter = getUserEmailFilter();
   const sortOrder = getCommentsSortOrder();
   const map = new Map([
-      ['limit', limit], ['username', usernameFilter], ['order', sortOrder]]);
+      ['limit', limit], ['user-email', userEmailFilter], ['order', sortOrder]]);
   fetchComments(map);
   return false;
 }
@@ -96,10 +96,10 @@ function fetchCommentsWithUserInput() {
  */
 function fetchNextPageOfComments() {
   const limit = getCommentLimit();
-  const usernameFilter = getUsernameFilter();
+  const userEmailFilter = getUserEmailFilter();
   const sortOrder = getCommentsSortOrder();
   const map = new Map([
-      ['limit', limit], ['username', usernameFilter], ['order', sortOrder], ['start', cursor]]);
+      ['limit', limit], ['user-email', userEmailFilter], ['order', sortOrder], ['start', cursor]]);
   fetchComments(map, false);
 }
 
@@ -178,9 +178,13 @@ function createElementForComment(comment) {
   const header = document.createElement('div');
   header.className = 'comment-header';
   const usernameElement = document.createElement('span');
-  usernameElement.innerText = comment.user;
+  usernameElement.innerText = comment.userEmail;
   usernameElement.className = 'username';
-  
+
+  fetchNicknameOfUser(comment.userEmail, 
+      (nickname) => {
+        usernameElement.innerText = nickname
+      });
   const timestampElement = document.createElement('span');
   timestampElement.innerText = (new Date(parseInt(comment.timestamp))).toLocaleString();
   timestampElement.className = 'timestamp';
@@ -202,6 +206,17 @@ function createElementForComment(comment) {
   return commentElement;
 }
 
+function fetchNicknameOfUser(email, completionHandler) {
+  fetch('/nickname?email=' + email)
+    .then(response => response.json())
+    .then(json => {
+      if (json.nickname == null) {
+        return;
+      }
+      completionHandler(json.nickname);
+    });
+}
+
 function deleteAllComments() {
   const request = new Request('/comments', { method: 'DELETE' });
   fetch(request).then(_ => fetchComments());
@@ -221,8 +236,10 @@ function configureCommentForm() {
   .then(loginStatus => {
     if (loginStatus.isLoggedIn) {
       showCommentForm(loginStatus);
+      showNicknameForm();
     } else {
       hideCommentForm(loginStatus);
+      hideNicknameForm();
     }
   })
 }
@@ -242,11 +259,21 @@ function showCommentForm(loginStatus) {
   const logoutContainer = document.getElementById('logout-container');
   logoutContainer.hidden = false;
   const username = document.getElementById('username');
-  username.innerText = loginStatus.userEmail;
+  username.innerText = loginStatus.nickname ? loginStatus.nickname : loginStatus.userEmail;
   const logoutLink = document.getElementById('logout-link');
   logoutLink.href = loginStatus.logoutUrl;
   const commentForm = document.getElementById('comment-form');
   commentForm.className = '';
+}
+
+function showNicknameForm() {
+  const nicknameForm = document.getElementById('nickname-form');
+  nicknameForm.hidden = false;
+}
+
+function hideNicknameForm() {
+  const nicknameForm = document.getElementById('nickname-form');
+  nicknameForm.hidden = true;
 }
 
 window.onload = () => {

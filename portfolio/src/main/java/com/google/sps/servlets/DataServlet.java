@@ -25,8 +25,11 @@ import com.google.appengine.api.datastore.Query;
 import com.google.appengine.api.datastore.Query.FilterOperator;
 import com.google.appengine.api.datastore.QueryResultList;
 import com.google.appengine.api.datastore.Query.SortDirection;
+import com.google.appengine.api.users.UserService;
+import com.google.appengine.api.users.UserServiceFactory;
 import com.google.gson.Gson;
 import com.google.sps.data.Comment;
+import com.google.sps.servlets.utils.UserInfoHelper;
 import java.io.IOException;
 import java.lang.Integer;
 import java.util.ArrayList;
@@ -60,10 +63,19 @@ public class DataServlet extends HttpServlet {
 
   @Override
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
-    String user = request.getParameter("username");
     String commentContent = request.getParameter("comment");
+
+    UserService userService = UserServiceFactory.getUserService();
+    if (!userService.isUserLoggedIn()) {
+      String urlToRedirectToAfterUserLogsIn = "/";
+      String loginUrl = userService.createLoginURL(urlToRedirectToAfterUserLogsIn);
+      response.sendRedirect(loginUrl);
+      return;
+    }
     
-    Comment comment = new Comment(commentContent, user);
+    String userEmail = userService.getCurrentUser().getEmail();
+
+    Comment comment = new Comment(commentContent, userEmail);
     Entity commentEntity = transformCommentToEntity(comment);
     datastore.put(commentEntity);
 
@@ -98,10 +110,10 @@ public class DataServlet extends HttpServlet {
       fetchOptions.startCursor(cursor.get());
     }
     
-    // Set username filter
-    Optional<String> username = getUsername(request);
-    if (username.isPresent()) {
-      query.addFilter("user", FilterOperator.EQUAL, username.get());
+    // Set userEmail filter
+    Optional<String> userEmail = getUserEmail(request);
+    if (userEmail.isPresent()) {
+      query.addFilter("userEmail", FilterOperator.EQUAL, userEmail.get());
     }
 
     // Add sort order
@@ -130,9 +142,9 @@ public class DataServlet extends HttpServlet {
   private Comment transformEntityToComment(Entity entity) {
     String content = (String) entity.getProperty("content");
     String id = (String) entity.getProperty("id");
-    String user = (String) entity.getProperty("user");
+    String userEmail = (String) entity.getProperty("userEmail");
     long timestamp = (long) entity.getProperty("timestamp");
-    Comment comment = new Comment(id, content, user, timestamp);
+    Comment comment = new Comment(id, content, userEmail, timestamp);
     return comment;
   }
 
@@ -141,17 +153,17 @@ public class DataServlet extends HttpServlet {
     Entity commentEntity = new Entity("Comment");
     commentEntity.setProperty("content", comment.getContent());
     commentEntity.setProperty("id", comment.getIdString());
-    commentEntity.setProperty("user", comment.getUser());
+    commentEntity.setProperty("userEmail", comment.getUserEmail());
     commentEntity.setProperty("timestamp", comment.getTimestamp());
     return commentEntity;
   }
 
-  /** Returns the username requested by the client if it exists. */
-  private Optional<String> getUsername(HttpServletRequest request) {
-    if (request.getParameter("username") == null) {
+  /** Returns the user email requested by the client if it exists. */
+  private Optional<String> getUserEmail(HttpServletRequest request) {
+    if (request.getParameter("user-email") == null) {
       return Optional.empty();
     }
-    return Optional.of(request.getParameter("username"));
+    return Optional.of(request.getParameter("user-email"));
   }
 
   /** 
@@ -168,7 +180,7 @@ public class DataServlet extends HttpServlet {
       case "oldest":
         return new SortOrder("timestamp", SortDirection.ASCENDING);
       case "user":
-        return new SortOrder("user", SortDirection.ASCENDING);
+        return new SortOrder("userEmail", SortDirection.ASCENDING);
       default:
         return new SortOrder("timestamp", SortDirection.DESCENDING);
     }
