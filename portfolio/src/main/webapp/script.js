@@ -14,7 +14,7 @@
 
 
 google.charts.load('current', {'packages':['corechart']});
-google.charts.setOnLoadCallback(drawChart);
+google.charts.setOnLoadCallback(drawCommentStatsChart);
 
 let cursor = null;
 
@@ -245,12 +245,18 @@ function fetchNicknameOfUser(email, completionHandler) {
 
 function deleteAllComments() {
   const request = new Request('/comments', { method: 'DELETE' });
-  fetch(request).then(_ => fetchComments());
+  fetch(request).then(_ => {
+    fetchComments();
+    drawCommentStatsChart();
+   });
 }
 
 function deleteComment(id) {
   const request = new Request('/comments?id=' + id, { method: 'DELETE' });
-  fetch(request).then(response => fetchComments());
+  fetch(request).then(response => {
+    fetchComments();
+    drawCommentStatsChart();
+   });
 }
 
 /**
@@ -314,32 +320,69 @@ function addBlobstoreUrlToForm() {
     });
 }
 
-/** Creates a chart and adds it to the page. */
-function drawChart() {
-  var data = google.visualization.arrayToDataTable([
-        ["Time", "Temperature"],
-        ["5pm", 32],
-        ["6pm", 31],
-        ["7pm", 31],
-        ["8pm", 30],
-        ["9pm", 30]
-      ]);
-
+/** Creates a chart for comments and adds it to the page. */
+function drawCommentStatsChart() {
+  let data = new google.visualization.DataTable();
+  data.addColumn('string', 'Date');
+  data.addColumn('number', 'Number of comments');
   const options = {
-     title: 'Hourly Temperature Forecast in Singapore (9 June)',
+     title: 'Comments statistics over the last 7 days',
      height: 400,
-     chartArea: { width:'60%',height:'75%' },
+     chartArea: { width:'80%', height:'75%' },
      vAxis: {
-        viewWindow: {
-          max: 36,
-          min: 29
-        },
-        title: "Temperature (Celsius)"
-      }
+        title: 'Number of comments'
+      },
+      hAxis: {
+        title: 'Date'
+      },
+      legend: 'bottom'
   };
+  const chart = new google.visualization.LineChart(document.getElementById('comment-stats-chart'));
 
-  const chart = new google.visualization.LineChart(document.getElementById('chart-container'));
-  chart.draw(data, options);
+  const today = new Date();
+  const dates = datesInWeekBefore(today).map(date => formatDate(date));
+  const params = 'start-date=' + dates[0] + '&end-date=' + dates[6];
+  fetch('/comments-stats?' + params)
+    .then(response => response.json())
+    .then(commentsCount => {
+      for (const date of dates) {
+        let numberOfComment = commentsCount[date];
+        if (numberOfComment == null) {
+          numberOfComment = 0;
+        }
+        data.addRow([date, numberOfComment]);
+      }
+      chart.draw(data, options);
+    });
+}
+
+/** Returns dates in the week before the given date. */
+function datesInWeekBefore(date) {
+  let dates = [];
+  for (i = -6; i <= 0; i++) {
+    const currentDate = new Date();
+    currentDate.setDate(date.getDate() + i);
+    dates.push(currentDate);
+  }
+  return dates;
+}
+
+/** Formats date into YYYY-MM-DD. */
+function formatDate(date) {
+  return date.getFullYear() + '-' 
+      + standardize(date.getMonth() + 1, 2) + '-' 
+      + standardize(date.getDate(), 2);
+}
+
+/** 
+ * Returns a string representation of the number after 
+ * standardizing it to the required number of digits. 
+*/
+function standardize(number, digit){
+  if (number.toString().length < digit) {
+    return '0'.repeat(digit - number.toString().length) + number;
+  }
+  return number.toString();
 }
 
 window.onload = () => {
