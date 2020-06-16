@@ -14,6 +14,11 @@
 
 package com.google.sps.servlets;
 
+import com.google.appengine.api.blobstore.BlobInfo;
+import com.google.appengine.api.blobstore.BlobInfoFactory;
+import com.google.appengine.api.blobstore.BlobKey;
+import com.google.appengine.api.blobstore.BlobstoreService;
+import com.google.appengine.api.blobstore.BlobstoreServiceFactory;
 import com.google.appengine.api.datastore.Cursor;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
@@ -25,6 +30,9 @@ import com.google.appengine.api.datastore.Query;
 import com.google.appengine.api.datastore.Query.FilterOperator;
 import com.google.appengine.api.datastore.QueryResultList;
 import com.google.appengine.api.datastore.Query.SortDirection;
+import com.google.appengine.api.images.ImagesService;
+import com.google.appengine.api.images.ImagesServiceFactory;
+import com.google.appengine.api.images.ServingUrlOptions;
 import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
 import com.google.gson.Gson;
@@ -32,7 +40,11 @@ import com.google.sps.data.Comment;
 import com.google.sps.servlets.utils.UserInfoHelper;
 import java.io.IOException;
 import java.lang.Integer;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -44,6 +56,7 @@ import javax.servlet.http.HttpServletResponse;
 public class DataServlet extends HttpServlet {
   
   private DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+  private BlobstoreService blobstoreService = BlobstoreServiceFactory.getBlobstoreService();
     
   @Override
   public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
@@ -63,8 +76,6 @@ public class DataServlet extends HttpServlet {
 
   @Override
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
-    String commentContent = request.getParameter("comment");
-
     UserService userService = UserServiceFactory.getUserService();
     if (!userService.isUserLoggedIn()) {
       String urlToRedirectToAfterUserLogsIn = "/";
@@ -75,8 +86,20 @@ public class DataServlet extends HttpServlet {
     
     String userEmail = userService.getCurrentUser().getEmail();
 
-    Comment comment = new Comment(commentContent, userEmail);
+    String commentContent = request.getParameter("comment");
+    Optional<BlobKey> imageBlobKey = getUploadedFileBlobKey(request, "image-upload");
+    Comment comment;
+    if (imageBlobKey.isPresent()) {
+      String imageUrl = getUploadedFileUrl(imageBlobKey.get());
+      comment = new Comment(commentContent, userEmail, imageUrl);
+    } else {
+      comment = new Comment(commentContent, userEmail);
+    }
+    
     Entity commentEntity = transformCommentToEntity(comment);
+    if (imageBlobKey.isPresent()) {
+      commentEntity.setProperty("imageBlobKey", imageBlobKey.get().getKeyString());
+    }
     datastore.put(commentEntity);
 
     response.sendRedirect("/index.html");
@@ -144,7 +167,11 @@ public class DataServlet extends HttpServlet {
     String id = (String) entity.getProperty("id");
     String userEmail = (String) entity.getProperty("userEmail");
     long timestamp = (long) entity.getProperty("timestamp");
-    Comment comment = new Comment(id, content, userEmail, timestamp);
+    String imageUrl = null;
+    if (entity.getProperty("imageUrl") != null) {
+      imageUrl = (String) entity.getProperty("imageUrl");
+    }
+    Comment comment = new Comment(id, content, userEmail, imageUrl, timestamp);
     return comment;
   }
 
@@ -155,6 +182,10 @@ public class DataServlet extends HttpServlet {
     commentEntity.setProperty("id", comment.getIdString());
     commentEntity.setProperty("userEmail", comment.getUserEmail());
     commentEntity.setProperty("timestamp", comment.getTimestamp());
+
+    if (comment.getImageUrl() != null) {
+      commentEntity.setProperty("imageUrl", comment.getImageUrl());
+    }
     return commentEntity;
   }
 
@@ -225,7 +256,7 @@ public class DataServlet extends HttpServlet {
     PreparedQuery results = datastore.prepare(query);
     
     for (Entity commentEntity: results.asIterable()) {
-      datastore.delete(commentEntity.getKey());
+      deleteCommentEntity(commentEntity);
     }
   }
 
@@ -235,8 +266,17 @@ public class DataServlet extends HttpServlet {
     PreparedQuery results = datastore.prepare(query);
 
     for (Entity entity: results.asIterable()) {
-      datastore.delete(entity.getKey());
+      deleteCommentEntity(entity);
     }
+  }
+
+  /** Deletes the comment entity. */
+  private void deleteCommentEntity(Entity comment) {
+    if (comment.getProperty("imageBlobKey") != null) {
+      String blobKey = (String) comment.getProperty("imageBlobKey");
+      blobstoreService.delete(new BlobKey(blobKey));
+    }
+    datastore.delete(comment.getKey());
   }
 
   private class SortOrder {
@@ -246,6 +286,49 @@ public class DataServlet extends HttpServlet {
     SortOrder(String property, SortDirection sortDirection) {
       this.property = property;
       this.sortDirection = sortDirection;
+    }
+  }
+
+  /** Returns a blob key that identifies the uploaded file if it exists. */
+  private Optional<BlobKey> getUploadedFileBlobKey(HttpServletRequest request, String formInputElementName) {
+    Map<String, List<BlobKey>> blobs = blobstoreService.getUploads(request);
+    List<BlobKey> blobKeys = blobs.get(formInputElementName);
+
+    if (blobKeys == null || blobKeys.isEmpty()) {
+      return Optional.empty();
+    }
+
+    BlobKey blobKey = blobKeys.get(0);
+
+    BlobInfo blobInfo = new BlobInfoFactory().loadBlobInfo(blobKey);
+    if (blobInfo.getSize() == 0) {
+      blobstoreService.delete(blobKey);
+      return Optional.empty();
+    }
+    return Optional.of(blobKey);
+  }
+
+  /** Returns a URL that points to the file with the given blob key. */
+  private String getUploadedFileUrl(BlobKey blobKey) {
+    ImagesService imagesService = ImagesServiceFactory.getImagesService();
+    ServingUrlOptions options = ServingUrlOptions.Builder.withBlobKey(blobKey);
+    
+    try {
+      URL url = new URL(imagesService.getServingUrl(options));
+      return url.getPath();
+    } catch (MalformedURLException e) {
+      return imagesService.getServingUrl(options);
+    }
+  }
+
+
+  /** Returns a URL that points to the uploaded file if it exists. */
+  private Optional<String> getUploadedFileUrl(HttpServletRequest request, String formInputElementName) {
+    Optional<BlobKey> blobKey = getUploadedFileBlobKey(request, formInputElementName);
+    if (blobKey.isPresent()) {
+      return Optional.of(getUploadedFileUrl(blobKey.get()));
+    } else {
+      return Optional.empty();
     }
   }
 

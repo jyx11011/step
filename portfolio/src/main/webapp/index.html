@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>My Portfolio</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://www.gstatic.com/charts/loader.js"></script>
     <script src="script.js"></script>
   </head>
   <body>
@@ -65,6 +66,7 @@
       <p>My image gallery includes photos of me and beautiful views where I travelled.
           There are also photos of delicious food I tried in restaurants as well as food 
           cooked by myself.</p>
+      <div id='map-container'></div>
       <h3 class="sec-header">Random Facts</h3>
       <p>Click here to get a random fact about me: 
             <button id="fact-button" onclick="addRandomFact()">Get a fact</button></p>
@@ -114,16 +116,21 @@
         Comment as <span id="username"></span>.
         <a id="logout-link">Logout</a>
       </div>
-      <form action="/comments" method="POST" id="comment-form" hidden>
+      <form action="/comments" method="POST" id="comment-form" class="hide" enctype="multipart/form-data">
         <textarea id="comment-text" name="comment" placeholder="Comment" rows="3" cols="80"></textarea>
+        <input type="file" name="image-upload" id="image-upload"></input>
         <button type="submit" id="new-comment-btn">Submit</button>
       </form>
 
-      <form action="/user" method="POST" id="nickname-form" hidden>
+      <div id="comment-stats-chart"></div>
+
+      <form action="/user" method="POST" id="nickname-form" class="hide">
         <label for="text">nickname:</label>
         <input name="nickname" type="text" id="nickname-input"></input>
         <button type="submit">Submit</button>
       </form>
     </div>
   </body>
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBSgzpIzs3zXDTvuiwFmNn9XKPXpJovUGk&callback=initMap"
+    async defer></script>
 </html>

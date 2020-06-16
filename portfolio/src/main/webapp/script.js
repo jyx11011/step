@@ -12,6 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+
+google.charts.load('current', {'packages':['corechart']});
+google.charts.setOnLoadCallback(drawCommentStatsChart);
+
 let cursor = null;
 
 /**
@@ -171,10 +175,7 @@ function resetComments() {
   fetchComments();
 }
 
-function createElementForComment(comment) {
-  const commentElement = document.createElement('div');
-  commentElement.className = 'comment'
-  
+function createCommentHeader(comment) {
   const header = document.createElement('div');
   header.className = 'comment-header';
   const usernameElement = document.createElement('span');
@@ -188,12 +189,11 @@ function createElementForComment(comment) {
   const timestampElement = document.createElement('span');
   timestampElement.innerText = (new Date(parseInt(comment.timestamp))).toLocaleString();
   timestampElement.className = 'timestamp';
-  header.append(usernameElement, timestampElement)
-  
-  const contentElement = document.createElement('div');
-  contentElement.innerText = comment.content;
-  contentElement.className = 'content';
-  
+  header.append(usernameElement, timestampElement);
+  return header;
+}
+
+function createCommentButton(comment) {
   const commentButtonElement = document.createElement('div');
   commentButtonElement.className = 'comment-button';
   const deleteButton = document.createElement('button');
@@ -202,7 +202,33 @@ function createElementForComment(comment) {
   deleteButton.className = 'delete-comment';
   commentButtonElement.append(deleteButton);
 
-  commentElement.append(header, contentElement, commentButtonElement);
+  return commentButtonElement;
+}
+
+function createCommentContent(comment) {
+  const contentElement = document.createElement('div');
+  contentElement.innerText = comment.content;
+  contentElement.className = 'content';
+
+  if (comment.imageUrl) {
+    const imageElement = document.createElement('img');
+    imageElement.src = comment.imageUrl;
+    imageElement.alt = 'comment image';
+    contentElement.append(imageElement);
+  }
+
+  return contentElement;
+}
+
+function createElementForComment(comment) {
+  const commentElement = document.createElement('div');
+  commentElement.className = 'comment'
+
+  const header = createCommentHeader(comment);
+  const content = createCommentContent(comment);
+  const button = createCommentButton(comment);
+  
+  commentElement.append(header, content, button);
   return commentElement;
 }
 
@@ -219,12 +245,18 @@ function fetchNicknameOfUser(email, completionHandler) {
 
 function deleteAllComments() {
   const request = new Request('/comments', { method: 'DELETE' });
-  fetch(request).then(_ => fetchComments());
+  fetch(request).then(_ => {
+    fetchComments();
+    drawCommentStatsChart();
+   });
 }
 
 function deleteComment(id) {
   const request = new Request('/comments?id=' + id, { method: 'DELETE' });
-  fetch(request).then(response => fetchComments());
+  fetch(request).then(response => {
+    fetchComments();
+    drawCommentStatsChart();
+   });
 }
 
 /**
@@ -250,7 +282,7 @@ function hideCommentForm(loginStatus) {
   const logoutContainer = document.getElementById('logout-container');
   logoutContainer.hidden = true;
   const commentForm = document.getElementById('comment-form');
-  commentForm.className = 'hide';
+  commentForm.classList.add('logout')
 }
 
 function showCommentForm(loginStatus) {
@@ -263,7 +295,7 @@ function showCommentForm(loginStatus) {
   const logoutLink = document.getElementById('logout-link');
   logoutLink.href = loginStatus.logoutUrl;
   const commentForm = document.getElementById('comment-form');
-  commentForm.className = '';
+  commentForm.classList.remove('logout');
 }
 
 function showNicknameForm() {
@@ -276,8 +308,109 @@ function hideNicknameForm() {
   nicknameForm.hidden = true;
 }
 
+function addBlobstoreUrlToForm() {
+  fetch('/blobstore-upload-url')
+    .then((response) => {
+      return response.text();
+    })
+    .then((imageUploadUrl) => {
+      const commentForm = document.getElementById('comment-form');
+      commentForm.action = imageUploadUrl;
+      commentForm.classList.remove('hide');
+    });
+}
+
+/** Creates a chart for comments and adds it to the page. */
+function drawCommentStatsChart() {
+  let data = new google.visualization.DataTable();
+  data.addColumn('string', 'Date');
+  data.addColumn('number', 'Number of comments');
+  const options = {
+     title: 'Comments statistics over the last 7 days',
+     height: 400,
+     chartArea: { width:'80%', height:'75%' },
+     vAxis: {
+        title: 'Number of comments'
+      },
+      hAxis: {
+        title: 'Date'
+      },
+      legend: 'bottom'
+  };
+  const chart = new google.visualization.LineChart(document.getElementById('comment-stats-chart'));
+
+  const today = new Date();
+  const dates = datesInWeekBefore(today).map(date => formatDate(date));
+  const params = 'start-date=' + dates[0] + '&end-date=' + dates[6];
+  fetch('/comments-stats?' + params)
+    .then(response => response.json())
+    .then(commentsCount => {
+      for (const date of dates) {
+        let numberOfComment = commentsCount[date];
+        if (numberOfComment == null) {
+          numberOfComment = 0;
+        }
+        data.addRow([date, numberOfComment]);
+      }
+      chart.draw(data, options);
+    });
+}
+
+/** Returns dates in the week before the given date. */
+function datesInWeekBefore(date) {
+  let dates = [];
+  for (i = -6; i <= 0; i++) {
+    const currentDate = new Date();
+    currentDate.setDate(date.getDate() + i);
+    dates.push(currentDate);
+  }
+  return dates;
+}
+
+/** Formats date into YYYY-MM-DD. */
+function formatDate(date) {
+  return date.getFullYear() + '-' 
+      + standardize(date.getMonth() + 1, 2) + '-' 
+      + standardize(date.getDate(), 2);
+}
+
+/** 
+ * Returns a string representation of the number after 
+ * standardizing it to the required number of digits. 
+*/
+function standardize(number, digit){
+  if (number.toString().length < digit) {
+    return '0'.repeat(digit - number.toString().length) + number;
+  }
+  return number.toString();
+}
+
+function initMap() {
+  const map = new google.maps.Map(document.getElementById('map-container'), {
+    center: {lat: 1.352, lng: 103.8198},
+    zoom: 12
+  });
+
+  const marker = new google.maps.Marker({
+    map: map,
+    animation: google.maps.Animation.DROP,
+    position: {lat: 1.35, lng: 103.8198},
+    label: 'A'
+  });
+
+  const infowindow = new google.maps.InfoWindow({
+    content: 'Hello, world!'
+  });
+
+  marker.addListener('click', function() {
+    infowindow.open(map, marker);
+  });
+}
+
 window.onload = () => {
   fetchComments();
   addRandomFact();
   configureCommentForm();
+  addBlobstoreUrlToForm();
+  initMap();
 }

@@ -202,6 +202,7 @@ body {
   padding: 5px;
 }
 
+#comment-form.logout,
 #comment-form.hide {
   display: none;
 }
@@ -235,4 +236,10 @@ body {
 
 #no-more-comments.appear {
   opacity: 1;
+}
+
+#map-container {
+  margin: 10px;
+  height: 500px;
+  width: auto;
 }
