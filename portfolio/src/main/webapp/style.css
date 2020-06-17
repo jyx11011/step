@@ -119,7 +119,8 @@ body {
 }
 
 #comments-setting-btns button,
-#new-comment-btn {
+#new-comment-btn,
+#nickname-btn {
   background: #8eb8ce;
   border: 1px solid #8eb8ce;
   color: whitesmoke;
@@ -129,7 +130,8 @@ body {
 }
 
 #comments-setting-btns button:hover,
-#new-comment-btn:hover {
+#new-comment-btn:hover,
+#nickname-btn:hover {
   background: #70a4c0;
 }
 
@@ -242,4 +244,8 @@ body {
   margin: 10px;
   height: 500px;
   width: auto;
+}
+
+#comments-stats-chart {
+  padding: 10px 5px;
 }
