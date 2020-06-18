@@ -26,13 +26,8 @@ public final class FindMeetingQuery {
   /**
    * A comparator for sorting events by their start time in ascending order.
    */
-  private static Comparator<Event> eventsComparator = new Comparator<Event>() {
-    @Override
-    public int compare(Event a, Event b) {
-      return TimeRange.ORDER_BY_START.compare(a.getWhen(), b.getWhen());
-    }
-
-  };
+  private static Comparator<Event> eventsComparator = 
+          Comparator.comparing(Event::getWhen, TimeRange.ORDER_BY_START);
 
   /**
    * Returns true if the attendees in the event and the meeting request overlap.
