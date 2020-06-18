@@ -66,13 +66,12 @@
       <p>My image gallery includes photos of me and beautiful views where I travelled.
           There are also photos of delicious food I tried in restaurants as well as food 
           cooked by myself.</p>
-      <div id='map-container'></div>
       <h3 class="sec-header">Random Facts</h3>
       <p>Click here to get a random fact about me: 
             <button id="fact-button" onclick="addRandomFact()">Get a fact</button></p>
       <div id="fact-container"></div>
 
-      <h3 class="sec-header">Comment</h3>
+      <h3 class="sec-header">Comments</h3>
       <form id="comments-setting">
         <div id="comments-setting-inputs">
           <div class="input-group">
@@ -122,15 +121,16 @@
         <button type="submit" id="new-comment-btn">Submit</button>
       </form>
 
-      <div id="comment-stats-chart"></div>
-
       <form action="/user" method="POST" id="nickname-form" class="hide">
-        <label for="text">nickname:</label>
+        <h3 class="sec-header">Nickname</h3>
+        <label for="text">Set your nickname here: </label>
         <input name="nickname" type="text" id="nickname-input"></input>
-        <button type="submit">Submit</button>
+        <button type="submit" id="nickname-btn">Submit</button>
       </form>
+      
+      <h3 class="sec-header">Comments Stats</h3>
+      <div id="comment-stats-chart"></div>
+      <p>See a map <a href="/map.html">here</a></p>
     </div>
   </body>
-  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBSgzpIzs3zXDTvuiwFmNn9XKPXpJovUGk&callback=initMap"
-    async defer></script>
 </html>
