@@ -43,7 +43,7 @@ public class CommentsStatisticServlet extends HttpServlet {
     LocalDate startingDate;
     LocalDate endingDate;
     try {
-      startingDate = LocalDate.parse(startignDateString, dateFormatter);
+      startingDate = LocalDate.parse(startingDateString, dateFormatter);
       endingDate = LocalDate.parse(endingDateString, dateFormatter);
     } catch(DateTimeParseException e) {
       response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
