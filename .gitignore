@@ -1,2 +1,11 @@
 target/
 .idea
+.eslintrc.js
+node_modules
+**/.settings
+**/.project
+**/.classpath
+package-lock.json
+package.json
+.vscode/settings.json
+**/.factorypath
